@@ -1,0 +1,13 @@
+<!--<fa-icon [icon]="faBars" size="lg" [styles]="{'color': 'white'}"></fa-icon>-->
+<mat-sidenav-container class="example-container">
+  <mat-sidenav #sidenav>
+    <fa-icon (click)="sidenav.close()" [icon]="faBars" size="lg" [styles]="{'color': 'white'}"></fa-icon>
+    <mat-nav-list>
+      <p *ngFor="let l of list">{{l}}</p>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <fa-icon (click)="sidenav.open()" [icon]="faBars" size="lg" [styles]="{'color': 'white'}"></fa-icon>
+    <span>Responsive</span>
+  </mat-sidenav-content>
+</mat-sidenav-container>
