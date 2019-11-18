@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title%></title>
+    <% include css-homepage%>
+    <% include home-script%>
+    <script>
+        var parkingSlotsJS = <%- JSON.stringify(parkingSlots)%>;
+        // var socket = io('https://820d7b05.ngrok.io');
+        var socket = io('http://localhost:3000');
+        socket.on('news', function (data) {
+            console.log(data);
+            if (data.billCode === '0') {
+                $('#qr-code').attr('hidden', 'true');
+                $('#notifySuccess').modal('show');
+            } else if (data.billCode === '32') {
+                $('#qr-code').attr('hidden', 'true');
+                $('#notifyFail').modal('show');
+            } else if (data.billCode === '99') {
+                $('#notifyUndefined').modal('show');
+            }
+        })
+    </script>
+</head>
+<body popover-close>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-0 col-lg-2"></div>
+        <div class="col-12 col-lg-8">
+            <table class="table table-striped table-bordered">
+                <thead class="thead-light">
+                <tr>
+                    <th>Slot Order</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% for(var i= 0;i < parkingSlots.length; i++) { %>
+                    <tr>
+                        <td><%= i+1%></td>
+                        <td>
+                            <p>- Booked: <%=parkingSlots[i].status.isBooked ? 'Yes': 'No'%></p>
+                            <p>- Booked Time: <%=parkingSlots[i].status.bookedTime%></p>
+                        </td>
+                    </tr>
+                <% } %>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-0 col-lg-2"></div>
+    </div>
+</div>
+<!--<iframe id="payment-page" -->
+<!--        src="https://test-payment.momo.vn/gw_payment/payment/qr?partnerCode=MOMO&accessKey=F8BBA842ECF85&requestId=MM1540456472575&amount=150000&orderId=MM1540456472571&signature=6721a7ab0c6bd73968e710e18065059d97e9a8fa0b6074fb41eae540687154de&requestType=captureMoMoWallet">-->
+<!--</iframe>-->
+<!--<iframe id="payment-page"></iframe>-->
+<img id="qr-code"/>
+<div class="container">
+    <div class="row p-1">
+        <div class="col-0 col-lg-4"></div>
+        <button class="col-12 col-lg-4 btn btn-primary"data-toggle="modal" data-target="#exampleModalCenter">Select Package</button>
+        <div class="col-0 col-lg-4"></div>
+    </div>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">WELCOME</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-hover">
+                        <tbody class="package">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="booking" type="button" class="btn btn-primary" data-dismiss="modal">Booking</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="notifySuccess" tabindex="-1" role="dialog" aria-labelledby="notifySuccess" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notifySuccessTitle">GIAO DỊCH THÀNH CÔNG</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center">
+                        <img style="width: 300px; height: 300px" src="/public/images/congrats.png" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="notifyFail" tabindex="-1" role="dialog" aria-labelledby="notifyFail" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notifyFailTitle">GIAO DỊCH ĐÃ ĐƯỢC THANH TOÁN</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center">
+                        <img style="width: 300px; height: 300px" src="/public/images/paid.png" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="notifyUndefined" tabindex="-1" role="dialog" aria-labelledby="notifyUndefined" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notifyUndefinedTitle">HỆ THỐNG ĐANG GẶP LỖI</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center">
+                        <img style="width: 400px; height: 300px" src="/public/images/fail.png" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

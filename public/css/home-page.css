@@ -1,0 +1,56 @@
+#main-clock {
+    color: #00a4ff;
+    text-align: center;
+    border: 1px solid #00a4ff;
+    font-size: 175px;
+}
+.bg-green {
+    background-color: #00b894 !important;
+}
+.clock-wrapper {
+    text-align: center;
+}
+.timezone-wrapper {
+    color: #ffffff;
+    text-align: center;
+    font-size: 40px;
+}
+.alarmGuide {
+    color: #ffffff;
+    text-align: center;
+    font-size: 40px;
+}
+.chooseTime {
+    text-align: center;
+    font-size: 45px;
+}
+.alarm-wrapper {
+    text-align: center;
+}
+.chooseHour, .chooseMinute {
+    font-size: 175px;
+}
+.seperateLine {
+    color: #ffffff;
+    font-size: 175px;
+}
+.valid {
+    color: #00b894;
+    line-height: 45px;
+    text-align: center;
+}
+.invalid {
+    color: #d63031;
+    line-height: 45px;
+    text-align: center;
+}
+.close {
+    float: right;
+    padding: 0;
+}
+.message {
+    display: none;
+}
+.slot {
+    width: 5%;
+}

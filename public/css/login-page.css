@@ -1,0 +1,45 @@
+.container-fluid {
+    padding: 0;
+}
+.signup-form .form-group {
+    min-width: 290px;
+}
+.login-page {
+    color: white;
+}
+.header {
+    background-image: linear-gradient(#883c97, rgb(139, 18, 119) 50%);
+    /* height: 10vh; */
+    padding: 10px;
+}
+.header a {
+    color: gray;
+}
+.header .login-form .form-group {
+    min-width: 160px;
+}
+.content-mobile {
+    color: black;
+    background-color: floralwhite;
+    /* height: 70vh; */
+    padding: 10px;
+}
+.content-desktop {
+    color: black;
+    background-color: floralwhite;
+}
+.content-desktop .signup-form {
+    margin: 0 auto;
+    width: 30%;
+}
+.footer {
+    background-color: rgb(181, 237, 245);
+    text-align: center;
+    /* height: 20vh; */
+}
+.footer a {
+    margin-right: 10px;
+}
+.footer a {
+    color: darkorange;
+}

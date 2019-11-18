@@ -1,0 +1,16 @@
+<script type="module" src="/public/js/lib/jquery.min.js"></script>
+<script type="module" src="/public/js/lib/popper.min.js"></script>
+<!-- **Error**: Uncaught TypeError: Bootstrap's dropdowns require Popper.js
+     **Fix**: Use bootstrap.bundle.min.js instead of bootstrap.min.js in Bootstrap v4
+     **References**: https://stackoverflow.com/questions/45661863/bootstrap-min-js6-uncaught-error-bootstrap-dropdown-require-popper-js
+     **Error**: Uncaught SyntaxError: Unexpected token export
+     **Fix**: Use type="module" in script tag
+     **References**: https://stackoverflow.com/questions/41722621/es6-in-the-browser-uncaught-syntaxerror-unexpected-token-import/45745913-->
+<script type="module" src="/public/js/lib/bootstrap.bundle.min.js"></script>
+<script type="module" src="/public/js/lib/bootstrap-clockpicker.js"></script>
+<script type="text/javascript" src="/node_modules/crypto-js/crypto-js.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- Hand-made Javascript -->
+<!-- Must have type="module" -->
+<script type="module" src="/public/js/clock.js"></script>
