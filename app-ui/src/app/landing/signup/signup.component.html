@@ -8,70 +8,80 @@
     </mat-sidenav>
     <mat-sidenav-content>
       <fa-icon (click)="sidenav.open()" [icon]="faBars" size="lg" [styles]="{'color': 'black'}"></fa-icon>
-      <div class="login-page container-fluid">
-        <div class="content-mobile d-block d-sm-block">
-          <div class="wrap-symbol">
-            <fa-icon [icon]="faGithub" size="10x"></fa-icon>
-            <h3>Sign Up</h3>
-          </div>
-          <form>
+      <div class="signup-page container-fluid">
+        <div class="wrap-symbol">
+          <fa-icon [icon]="faGithub" size="10x"></fa-icon>
+          <h3>Sign Up</h3>
+        </div>
+        <div class="header">
+          <div class="signup-form">
             <div class="form-group">
               <label>Email:</label>
-              <input class="form-control-sm" id="email" email = "email"
-                     placeholder="Enter email" required pattern="^[a-zA-Z0–9_.+-]+@[a-zA-Z0–9-]+.[a-zA-Z0–9-.]+$">
-              <div *ngIf="email.invalid && (email.dirty || email.touched)"
-                   class="alert alert-danger">
-
+              <input class="form-control form-control-sm" id="email" required #email="ngModel"
+                     [(ngModel)]="user.email" placeholder="Enter email" required pattern="^[a-zA-Z0-9]+\@\D+\.\D+">
+              <div *ngIf="email.invalid && (email.dirty || email.touched)" class="form-control-sm alert-danger">
                 <div *ngIf="email.errors.required">
-                  Name is required.
+                  Email is required.
                 </div>
-                <div *ngIf="email.errors.minlength">
-                  Name must be at least 4 characters long.
+                <div *ngIf="email.errors.pattern">
+                  Email must have <@>, <.>.
                 </div>
-                <div *ngIf="email.errors.forbiddenName">
-                  Name cannot be Bob.
-                </div>
-
               </div>
             </div>
             <div class="form-group">
               <label>Password:</label>
-              <input type="password" class="form-control-sm" id="password"
-                     placeholder="Enter password">
+              <input type="password" class="form-control form-control-sm" id="password" required minlength="8" #pass="ngModel"
+                     [(ngModel)]="user.password" placeholder="Enter password">
+              <div *ngIf="pass.invalid && (pass.dirty || pass.touched)" class="form-control-sm alert-danger">
+                <div *ngIf="pass.errors.required">
+                  Password is required.
+                </div>
+                <div *ngIf="pass.errors.minlength">
+                  Password must have at least 8 character.
+                </div>
+              </div>
             </div>
             <div class="form-group">
               <label>Confirm password:</label>
-              <input type="password" class="form-control-sm" id="confirm"
-                     placeholder="Re-type password">
+              <input type="password" class="form-control form-control-sm" id="confirm" required #confirm="ngModel"
+                     [(ngModel)]="user.confirm" placeholder="Re-type password">
+              <div class="form-control-sm alert-danger" *ngIf="confirm.value && confirm.value != user.password">
+                Mismatch with password.
+              </div>
+              <div *ngIf="confirm.invalid && (confirm.dirty || confirm.touched)" class="form-control-sm alert-danger">
+                <div *ngIf="confirm.errors.required">
+                  Password is required.
+                </div>
+              </div>
             </div>
             <div class="form-group">
-              <button type="submit" class="btn btn-primary form-control-sm">Sign up</button>
+              <button type="submit" class="btn btn-primary form-control form-control-sm">Sign up</button>
             </div>
-          </form>
+          </div>
         </div>
-<!--        <div class="content-desktop d-none d-sm-block">-->
-<!--          <div class="wrap-symbol">-->
-<!--            <fa-icon [icon]="faGithub" size="10x"></fa-icon>-->
-<!--            <h3>Sign Up</h3>-->
-<!--          </div>-->
-<!--          <div class="signup-form">-->
-<!--            <div class="form-group">-->
-<!--              <label for="email">Email:</label>-->
-<!--              <input type="email" class="form-control form-control-sm" placeholder="Enter email">-->
-<!--            </div>-->
-<!--            <div class="form-group">-->
-<!--              <label for="password">Password:</label>-->
-<!--              <input type="password" class="form-control form-control-sm" placeholder="Enter password">-->
-<!--            </div>-->
-<!--            <div class="form-group">-->
-<!--              <label for="password">Confirm password:</label>-->
-<!--              <input type="password" class="form-control form-control-sm" placeholder="Re-type password">-->
-<!--            </div>-->
-<!--            <div class="form-group">-->
-<!--              <button class="btn btn-primary form-control form-control-sm">Sign up</button>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
+        <!--        <div class="content-desktop d-none d-sm-block">-->
+        <!--          <div class="wrap-symbol">-->
+        <!--            <fa-icon [icon]="faGithub" size="10x"></fa-icon>-->
+        <!--            <h3>Sign Up</h3>-->
+        <!--          </div>-->
+        <!--          <div class="signup-form">-->
+        <!--            <div class="form-group">-->
+        <!--              <label for="email">Email:</label>-->
+        <!--              <input type="email" class="form-control form-control-sm" placeholder="Enter email">-->
+        <!--            </div>-->
+        <!--            <div class="form-group">-->
+        <!--              <label for="password">Password:</label>-->
+        <!--              <input type="password" class="form-control form-control-sm" placeholder="Enter password">-->
+        <!--            </div>-->
+        <!--            <div class="form-group">-->
+        <!--              <label for="password">Confirm password:</label>-->
+        <!--              <input type="password" class="form-control form-control-sm" placeholder="Re-type password">-->
+        <!--            </div>-->
+        <!--            <div class="form-group">-->
+        <!--              <button class="btn btn-primary form-control form-control-sm">Sign up</button>-->
+        <!--            </div>-->
+        <!--          </div>-->
+        <!--        </div>-->
         <div class="footer">
           <div class="language">
             <a href="">Vietnamese</a>

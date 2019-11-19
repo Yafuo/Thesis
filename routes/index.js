@@ -25,7 +25,7 @@ router.get('/', function(req, res, next) {
     if (req.cookies.token) {
         res.redirect('/home');
     } else {
-        res.redirect('/landing');
+        res.redirect('/login');
     }
 });
 router.post('/signup', function (req, res, next) {
@@ -44,7 +44,7 @@ router.post('/signup', function (req, res, next) {
                 }).catch(err => {
                     console.log(err);
                 });
-                res.status(200).send(user).redirect('/landing');
+                res.status(200).send(user).redirect('/login');
             }
             res.status(200).json({'ALREADY EXISTS': u});
         }).catch(err => {
@@ -80,7 +80,7 @@ router.post('/receive-notify', (req, res, next) => {
     req.app.io.emit('news', {billMsg: d.message, billCode: d.errorCode});
     res.json(d);
 });
-router.get('/landing', (req, res) => {
+router.get('/login', (req, res) => {
     // verify(req.cookies.token)
     //     .then(decoded => {
     //       req.locals.userId = decoded._id;
@@ -94,9 +94,9 @@ router.get('/landing', (req, res) => {
         res.redirect('/home');
         return;
     }
-    res.render('landing-page', {title: 'Login Page'});
+    res.render('login-page', {title: 'Login Page'});
 });
-router.post('/landing', (req, res, next) => {
+router.post('/login', (req, res, next) => {
     const {email, password} = req.body;
     User.findOne({email}).then(result => {
         if (!result) {

@@ -1,10 +1,10 @@
 $(document).ready(function() {
-    $('#landing').click(e => {
+    $('#login').click(e => {
         const email = $('#email').val();
         const password = $('#password').val();
         $.ajax({
             type: 'POST',
-            url: '/landing',
+            url: '/login',
             data: JSON.stringify({
               'email': email,
               'password': password
