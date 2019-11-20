@@ -40,17 +40,20 @@ router.post('/signup', function (req, res, next) {
         User.findOne({email: user.email}, {password: user.password}).then(u => {
             if (!u) {
                 user.save().then(result => {
-                    console.log('CREATED', +result);
+                    res.json({result: 'SIGNUP_SUCCESS'});
+                    console.log('CREATED' + result);
                 }).catch(err => {
-                    console.log(err);
+                    res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
                 });
-                res.status(200).send(user).redirect('/login');
+                // res.status(200).send(user).redirect('/login'); // CAUTION: For ejs
+                return;
             }
-            res.status(200).json({'ALREADY EXISTS': u});
+            res.status(200).json({result: 'ALREADY_SIGNUP'});
         }).catch(err => {
-            res.status(404);
+            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (findOne)'});
         });
     }).catch(err => {
+        res.status(503).json({result: 'BCRYPT_SERVICE_FAILED (hash)'});
         console.log(err);
     });
 });
@@ -100,30 +103,31 @@ router.post('/login', (req, res, next) => {
     const {email, password} = req.body;
     User.findOne({email}).then(result => {
         if (!result) {
-            res.json({result: 'WRONG_EMAIL'});
+            res.status(401).json({result: 'WRONG_EMAIL'});
             return ;
         }
         compare(req.body.password, result.password).then(r => {
             if (!r) {
-                res.json({result: 'WRONG_PASSWORD'});
+                res.status(401).json({result: 'WRONG_PASSWORD'});
                 return;
             }
             sign({_id: result._id})
                 .then(token => {
-                    res.cookie('token', token, {maxAge: 10*60*1000}).status(200).json({result: 'LOGIN_SUCCESS'});
-                    console.log(req.cookie.token);
-                    return;
+                    res.cookie('token', token, {maxAge: 10*60*1000}).json({result: 'LOGIN_SUCCESS'});
+                    console.log(req.cookies.token); // WARNING: ConsoleLog cause this sign function to run catch block or catch(). Error below
+                                                    // UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+                                                    // CAUSE: req.cookie.token => Wrong | FIX: req.cookies.token => Correct
                 })
                 .catch(err => {
-                    res.json({result: 'GENERATE_TOKEN_FAILED'});
-                    return;
-                })
+                    res.status(503).json({result: 'GENERATE_TOKEN_FAILED'});
+                    console.log(err);
+                });
         }).catch(err => {
-            res.json({result: 'BCRYPT_SERVICE_FAILED'});
+            res.status(503).json({result: 'BCRYPT_SERVICE_FAILED'});
             console.log(err);
         });
     }).catch(err => {
-        res.json({result: 'QUERY_DATABASE_FAILED'});
+        res.status(503).json({result: 'QUERY_DATABASE_FAILED'});
         console.log(err);
     });
 });
