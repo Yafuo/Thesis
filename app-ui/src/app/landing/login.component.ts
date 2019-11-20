@@ -4,6 +4,7 @@ import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {User} from "./signup/signup.component";
 import {HttpClient} from "@angular/common/http";
 import {Router} from "@angular/router";
+import {NgxSpinnerService} from "ngx-spinner";
 
 @Component({
   selector: 'app-login',
@@ -18,9 +19,14 @@ export class LoginComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
   user = new User('', '', '');
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router, private spinner: NgxSpinnerService) { }
 
   ngOnInit() {
+    this.spinner.show();
+
+    setTimeout(() => {
+      this.spinner.hide();
+    }, 1000);
   }
 
   signin() {

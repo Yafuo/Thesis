@@ -3,6 +3,7 @@ import {faBars, faArrowLeft} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {HttpClient} from "@angular/common/http";
 import {Router} from "@angular/router";
+import {NgxSpinnerService} from "ngx-spinner";
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
@@ -16,9 +17,14 @@ export class SignupComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
   user = new User('', '', '');
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router, private spinner: NgxSpinnerService) { }
 
   ngOnInit() {
+    this.spinner.show();
+
+    setTimeout(() => {
+      this.spinner.hide();
+    }, 1000);
   }
 
   signup() {
