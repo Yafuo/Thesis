@@ -1,50 +1,49 @@
 <div class="wrap-content">
   <mat-sidenav-container class="example-container" (backdropClick)="sidenav.close()">
     <mat-sidenav #sidenav>
-      <fa-icon (click)="sidenav.close()" [icon]="faArrowLeft" size="lg" [styles]="{'color': 'black'}"></fa-icon>
+      <fa-icon (click)="sidenav.close()" [icon]="faArrowLeft" size="2x" [styles]="{'color': 'black'}"></fa-icon>
       <mat-nav-list>
-        <p *ngFor="let l of list">{{l}}</p>
+        <p (click)="navTo(i)" *ngFor="let l of list; index as i">{{l}}</p>
       </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content>
-      <fa-icon (click)="sidenav.open()" [icon]="faBars" size="lg" [styles]="{'color': 'black'}"></fa-icon>
+      <fa-icon (click)="sidenav.open()" [icon]="faBars" size="2x" [styles]="{'color': 'black'}"></fa-icon>
       <div class="login-page container-fluid">
         <div class="wrap-symbol">
           <fa-icon [icon]="faGithub" size="10x"></fa-icon>
           <h3>Sign In</h3>
         </div>
-        <div class="header">
-          <div class="login-form">
-            <div class="form-group mb-4">
-              <label class="mb-0">Email:</label>
-              <input type="email" class="form-control form-control-sm" required
-                     placeholder="Enter email" [(ngModel)]="user.email" #email= "ngModel" pattern="^[a-zA-Z0-9]+\@\D+\.\D+">
-              <div *ngIf="email.invalid && (email.dirty || email.touched)" class="form-control-sm alert-danger">
-                <div *ngIf="email.errors.required">
-                  Email is required.
-                </div>
-                <div *ngIf="email.errors.pattern">
-                  Email must have <@>, <.>.
-                </div>
+        <div class="login-form">
+          <div class="form-group mb-4">
+            <label class="mb-0">Email:</label>
+            <input type="email" class="form-control form-control-sm" required
+                   placeholder="Enter email" [(ngModel)]="user.email" #email="ngModel"
+                   pattern="^[a-zA-Z0-9]+\@[^\@\.]+\.[^\@\.]+">
+            <div *ngIf="email.invalid && (email.dirty || email.touched)" class="form-control-sm alert-danger">
+              <div *ngIf="email.errors.required">
+                Email is required.
+              </div>
+              <div *ngIf="email.errors.pattern">
+                Email must have <@>, <.>.
               </div>
             </div>
-            <div class="form-group mb-4">
-              <label class="mb-0">Password:</label>
-              <input type="password" class="form-control form-control-sm" required minlength="8" #pass = "ngModel"
-                     placeholder="Enter password" [(ngModel)]="user.password" #password>
-              <div *ngIf="pass.invalid && (pass.dirty || pass.touched)" class="form-control-sm alert-danger">
-                <div *ngIf="pass.errors.required">
-                  Password is required.
-                </div>
-                <div *ngIf="pass.errors.minlength">
-                  Password must have at least 8 character.
-                </div>
+          </div>
+          <div class="form-group mb-4">
+            <label class="mb-0">Password:</label>
+            <input type="password" class="form-control form-control-sm" required minlength="8" #pass="ngModel"
+                   placeholder="Enter password" [(ngModel)]="user.password" #password>
+            <div *ngIf="pass.invalid && (pass.dirty || pass.touched)" class="form-control-sm alert-danger">
+              <div *ngIf="pass.errors.required">
+                Password is required.
               </div>
-              <a href="">Forget password ?</a>
+              <div *ngIf="pass.errors.minlength">
+                Password must have at least 8 character.
+              </div>
             </div>
-            <div class="form-group mb-0">
-              <button (click)="signin(email.value, password.value)" id="login" class="btn btn-primary form-control form-control-sm">Login</button>
-            </div>
+            <a href="">Forget password ?</a>
+          </div>
+          <div class="form-group mb-0">
+            <button [disabled]="email.errors || pass.errors" (click)="signin()" id="login" class="btn btn-primary form-control form-control-sm">Login</button>
           </div>
         </div>
       </div>
