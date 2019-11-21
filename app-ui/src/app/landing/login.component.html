@@ -14,7 +14,7 @@
           <fa-icon [icon]="faGithub" size="10x"></fa-icon>
           <h3>Sign In</h3>
         </div>
-        <div class="login-form">
+        <div class="col-12 col-md-8 login-form m-0 ml-auto mr-auto">
           <div class="form-group mb-4">
             <label class="mb-0">Email:</label>
             <input type="email" class="form-control form-control-sm" required
@@ -38,7 +38,7 @@
                 Password is required.
               </div>
               <div *ngIf="pass.errors.minlength">
-                Password must have at least 8 character.
+                At least 8 character.
               </div>
             </div>
             <a href="">Forget password ?</a>

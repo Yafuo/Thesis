@@ -9,10 +9,12 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {AuthGuard} from "./auth.guard";
 import {AuthService} from "./auth.service";
 import {CookieService} from "ngx-cookie-service";
+import {TopPanelComponent} from "./common/top-panel/top-panel.component";
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    TopPanelComponent
   ],
   imports: [
     BrowserModule,

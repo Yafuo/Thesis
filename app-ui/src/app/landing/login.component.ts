@@ -26,7 +26,7 @@ export class LoginComponent implements OnInit {
 
     setTimeout(() => {
       this.spinner.hide();
-    }, 1000);
+    }, 600);
   }
 
   signin() {
@@ -36,6 +36,7 @@ export class LoginComponent implements OnInit {
     }
     this.http.post('/login', params).subscribe(r => {
       console.log(r);
+      this.router.navigate(['/home']);
     }, (err) => {
       console.log(err);
     });

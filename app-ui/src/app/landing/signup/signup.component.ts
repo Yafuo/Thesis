@@ -24,7 +24,7 @@ export class SignupComponent implements OnInit {
 
     setTimeout(() => {
       this.spinner.hide();
-    }, 1000);
+    }, 600);
   }
 
   signup() {

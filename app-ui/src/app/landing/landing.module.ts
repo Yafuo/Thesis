@@ -1,7 +1,6 @@
 import {NgModule} from "@angular/core";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 import {RouterModule} from "@angular/router";
-import {TopPanelComponent} from "../common/top-panel/top-panel.component";
 import {SignupComponent} from "./signup/signup.component";
 import {LandingRoutingModule} from "./landing-routing.module";
 import {MatSidenavModule} from "@angular/material/sidenav";
@@ -14,7 +13,6 @@ import {NgxSpinnerModule} from "ngx-spinner";
 
 @NgModule({
   declarations: [
-    TopPanelComponent,
     LoginComponent,
     SignupComponent
   ],
