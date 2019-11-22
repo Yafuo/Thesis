@@ -8,6 +8,7 @@ var {verify, sign} = require('../custom_lib/jwt');
 var crypto = require('crypto-js');
 var encHex = require('crypto-js/enc-hex');
 var {io, app} = require('../app');
+var nodeMailer = require('nodemailer');
 
 /* GET home page. */
 router.get('/home', isLoggedIn, function(req, res, next) {
@@ -82,6 +83,17 @@ router.post('/receive-notify', (req, res, next) => {
     d.signature = signature.toString(encHex);
     req.app.io.emit('news', {billMsg: d.message, billCode: d.errorCode});
     res.json(d);
+});
+router.post('/reset-password', (req, res, next) => {
+    var transporter = nodeMailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: 'uit.smartparking@gmail.com',
+            pass: '1234!@#$'
+        }
+    });
 });
 router.get('/login', (req, res) => {
     // verify(req.cookies.token)

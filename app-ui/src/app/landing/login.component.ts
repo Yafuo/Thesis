@@ -5,6 +5,7 @@ import {User} from "./signup/signup.component";
 import {HttpClient} from "@angular/common/http";
 import {Router} from "@angular/router";
 import {NgxSpinnerService} from "ngx-spinner";
+import {CookieService} from "ngx-cookie-service";
 
 @Component({
   selector: 'app-login',
@@ -19,14 +20,18 @@ export class LoginComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
   user = new User('', '', '');
-  constructor(private http: HttpClient, private router: Router, private spinner: NgxSpinnerService) { }
+  constructor(private http: HttpClient, private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) { }
 
   ngOnInit() {
-    this.spinner.show();
+    if (this.cookieService.check('token')) {
+      this.router.navigate(['/home']);
+    } else {
+      this.spinner.show();
 
-    setTimeout(() => {
-      this.spinner.hide();
-    }, 600);
+      setTimeout(() => {
+        this.spinner.hide();
+      }, 600);
+    }
   }
 
   signin() {
