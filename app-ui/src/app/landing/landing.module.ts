@@ -11,6 +11,7 @@ import {FormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
 import {NgxSpinnerModule} from "ngx-spinner";
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import {TranslateModule} from "@ngx-translate/core";
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { ForgotPasswordComponent } from './forgot-password/forgot-password.compo
     CommonModule,
     FormsModule,
     HttpClientModule,
-    NgxSpinnerModule
+    NgxSpinnerModule,
+    TranslateModule
   ],
   providers: []
 })

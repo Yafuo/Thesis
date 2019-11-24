@@ -163,12 +163,12 @@ router.post('/login', (req, res, next) => {
     const {email, password} = req.body;
     User.findOne({email}).then(result => {
         if (!result) {
-            res.status(401).json({result: 'WRONG_EMAIL'});
+            res.status(200).json({result: 'WRONG_EMAIL'});
             return ;
         }
         compare(req.body.password, result.password).then(r => {
             if (!r) {
-                res.status(401).json({result: 'WRONG_PASSWORD'});
+                res.status(200).json({result: 'WRONG_PASSWORD'});
                 return;
             }
             sign({_id: result._id})
