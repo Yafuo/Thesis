@@ -2,9 +2,12 @@
   <ngx-spinner></ngx-spinner>
   <mat-sidenav-container class="example-container" (backdropClick)="sidenav.close()">
     <mat-sidenav #sidenav>
-      <fa-icon (click)="sidenav.close()" [icon]="faArrowLeft" size="2x" [styles]="{'color': 'black'}"></fa-icon>
+      <fa-icon (click)="sidenav.close()" [icon]="faChevronLeft" size="2x" [styles]="{'color': 'black'}"></fa-icon>
       <mat-nav-list>
-        <p (click)="navTo(i)" *ngFor="let l of list; index as i">{{l}}</p>
+        <div class="mat-list-option" (click)="navTo(i)" *ngFor="let l of list; index as i">
+          <fa-icon [icon]="navBarList[i]"></fa-icon>
+          {{l}}
+        </div>
       </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content>
@@ -62,39 +65,14 @@
             </button>
           </div>
         </div>
-        <!--        <div class="content-desktop d-none d-sm-block">-->
-        <!--          <div class="wrap-symbol">-->
-        <!--            <fa-icon [icon]="faGithub" size="10x"></fa-icon>-->
-        <!--            <h3>Sign Up</h3>-->
-        <!--          </div>-->
-        <!--          <div class="signup-form">-->
-        <!--            <div class="form-group">-->
-        <!--              <label for="email">Email:</label>-->
-        <!--              <input type="email" class="form-control form-control-sm" placeholder="Enter email">-->
-        <!--            </div>-->
-        <!--            <div class="form-group">-->
-        <!--              <label for="password">Password:</label>-->
-        <!--              <input type="password" class="form-control form-control-sm" placeholder="Enter password">-->
-        <!--            </div>-->
-        <!--            <div class="form-group">-->
-        <!--              <label for="password">Confirm password:</label>-->
-        <!--              <input type="password" class="form-control form-control-sm" placeholder="Re-type password">-->
-        <!--            </div>-->
-        <!--            <div class="form-group">-->
-        <!--              <button class="btn btn-primary form-control form-control-sm">Sign up</button>-->
-        <!--            </div>-->
-        <!--          </div>-->
-        <!--        </div>-->
-        <div class="footer">
-          <div class="language">
-            <a href="">Vietnamese</a>
-            <a href="">English</a>
-            <a href="">Spanish</a>
-            <a href="">Russian</a>
-            <a href="">Chinese</a>
-            <a href="">French</a>
-            <a href="">Italian</a>
-          </div>
+      </div>
+      <div class="footer">
+        <div class="text-center" style="color: white">© Copyright 2019 Designed by Yafuo.</div>
+        <div class="language">
+          <a href="">|| Vietnamese ||</a>
+          <a href=""> English ||</a>
+          <a href=""> Español ||</a>
+          <a href=""> Chinese ||</a>
         </div>
       </div>
     </mat-sidenav-content>

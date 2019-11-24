@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {faBars, faArrowLeft} from "@fortawesome/free-solid-svg-icons";
+import {faBars, faArrowLeft, faChevronLeft,faSignInAlt,faPowerOff} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {HttpClient} from "@angular/common/http";
 import {Router} from "@angular/router";
@@ -17,6 +17,10 @@ export class SignupComponent implements OnInit {
   faBars = faBars;
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
+  faChevronLeft = faChevronLeft;
+  faSignInAlt = faSignInAlt;
+  faPowerOff = faPowerOff;
+  navBarList = [this.faSignInAlt, this.faPowerOff];
   user = new User('', '', '');
   constructor(private http: HttpClient, private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) { }
 

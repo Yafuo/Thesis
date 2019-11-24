@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {faBars, faArrowLeft, faKey, faUser} from "@fortawesome/free-solid-svg-icons";
+import {faBars, faArrowLeft, faKey, faUser, faUserPlus, faPowerOff, faChevronLeft} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {User} from "./signup/signup.component";
 import {HttpClient} from "@angular/common/http";
@@ -20,10 +20,13 @@ export class LoginComponent implements OnInit {
   wrongList = ['WRONG_PASSWORD', 'WRONG_EMAIL'];
   wrongIndex = -1;
   faBars = faBars;
-  faArrowLeft = faArrowLeft;
+  faChevronLeft = faChevronLeft;
   faGithub = faGithub;
   faKey = faKey;
   faUser = faUser;
+  faUserPlus =  faUserPlus;
+  faPowerOff= faPowerOff;
+  navBarList = [this.faUserPlus, this.faPowerOff];
   userIconList = [this.faKey, this.faUser];
   user = new User('', '', '');
   constructor(private translate: TranslateService, private http: HttpClient

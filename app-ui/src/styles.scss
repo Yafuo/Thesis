@@ -13,3 +13,21 @@ mat-sidenav-container {
 .signup-form, .login-form {
   max-width: 320px;
 }
+mat-sidenav {
+  width: 100px;
+}
+.mat-list-option {
+  border-bottom: 1px solid aqua;
+}
+.footer {
+  background-color: black;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+a {
+  text-decoration: underline;
+  &:hover {
+    color: white;
+  }
+}

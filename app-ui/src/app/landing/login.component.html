@@ -2,9 +2,12 @@
   <ngx-spinner></ngx-spinner>
   <mat-sidenav-container class="example-container" (backdropClick)="sidenav.close()">
     <mat-sidenav #sidenav>
-      <fa-icon (click)="sidenav.close()" [icon]="faArrowLeft" size="2x" [styles]="{'color': 'black'}"></fa-icon>
+      <fa-icon (click)="sidenav.close()" [icon]="faChevronLeft" size="2x" [styles]="{'color': 'black'}"></fa-icon>
       <mat-nav-list>
-        <p (click)="navTo(i)" *ngFor="let l of list; index as i">{{l}}</p>
+        <div class="mat-list-option" (click)="navTo(i)" *ngFor="let l of list; index as i">
+          <fa-icon [icon]="navBarList[i]"></fa-icon>
+          {{l}}
+        </div>
       </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content>
@@ -50,6 +53,15 @@
             <fa-icon [icon]="userIconList[wrongIndex]" [styles]="{'color': 'red'}"></fa-icon>
             <i style="color: red">{{wrongList[wrongIndex] | translate}}</i>
           </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="text-center" style="color: white">&copy; Copyright 2019 Designed by Yafuo.</div>
+        <div class="language">
+          <a href="">|| Vietnamese ||</a>
+          <a href=""> English ||</a>
+          <a href=""> Español ||</a>
+          <a href=""> Chinese ||</a>
         </div>
       </div>
     </mat-sidenav-content>
