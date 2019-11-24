@@ -37,7 +37,7 @@ export class SignupComponent implements OnInit {
       email: this.user.email,
       password: this.user.password
     };
-    this.http.post('/signup', params).subscribe(r => {
+    this.http.post('/api/signup', params).subscribe(r => {
       console.log(r);
     }, err => {
       console.log(err);

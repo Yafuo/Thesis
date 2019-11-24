@@ -7,6 +7,7 @@ var {hash, compare} = require('../custom_lib/bcrypt');
 var {verify, sign} = require('../custom_lib/jwt');
 var crypto = require('crypto-js');
 var encHex = require('crypto-js/enc-hex');
+var encUtf8 = require('crypto-js/enc-utf8');
 var {io, app} = require('../app');
 var nodeMailer = require('nodemailer');
 
@@ -85,14 +86,61 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.post('/reset-password', (req, res, next) => {
+    var email = req.body.receiverMail;
+    var secretKey = '1234qwer';
+    var encryptEmail = crypto.AES.encrypt(email, secretKey);
+    var encryptUrl = `http://localhost:4200/landing/password_reset?email=${encryptEmail}`;
     var transporter = nodeMailer.createTransport({
-        host: 'smtp.gmail.com',
+        service: 'Gmail',
         port: 465,
         secure: true,
         auth: {
             user: 'uit.smartparking@gmail.com',
             pass: '1234!@#$'
         }
+    });
+    let mailOptions = {
+        from: '"Smart Parking System" uit.smartparking@gmail.com',
+        to: req.body.receiverMail,
+        subject: 'Reset your password',
+        text: 'Just do it',
+        html: `${req.body.plainContent}\n<a href="${encryptUrl}">${encryptUrl}</a>`
+    };
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            res.status(503).json({result: 'NODEMAILER_SERVICE_FAILED'});
+            return;
+        }
+        // res.json({result: info.response});
+        res.json({result: 'SENT_SUCCESS'});
+    });
+});
+router.post('/reset-for', (req, res, next) => {
+    var secretKey = '1234qwer';
+    // Chrome replace all "+" character into "%02" or something like that.
+    // And request http param change "%02" to "space" character.
+    // So this action will replace all "space" character into "+" using regex
+    var encryptedEmail = req.body.encryptedEmail.replace(/ /g, "+");
+    // Haven't test decrypt to encHEx yet, but encUtf8 work.
+    var decryptedEmail = crypto.AES.decrypt(encryptedEmail, secretKey).toString(encUtf8);
+    console.log('Email:'+ decryptedEmail);
+    let h = hash(req.body.password).then(function (hash, err) {
+        const user = new User({
+            email: decryptedEmail,
+            password: hash,
+            isLinkedToMomo: true
+        });
+        User.findOneAndUpdate({email: decryptedEmail}, {password: user.password}).then(updatedUser => {
+            if (!updatedUser) {
+                res.json({result: 'NOT_SIGNUP_YET'});
+                return;
+            }
+            res.json({result: 'PASSWORD_CHANGED_SUCCESS'});
+        }).catch(err => {
+            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (findOneAndUpdate)'});
+        });
+    }).catch(err => {
+        res.status(503).json({result: 'BCRYPT_SERVICE_FAILED (hash)'});
     });
 });
 router.get('/login', (req, res) => {
@@ -126,21 +174,18 @@ router.post('/login', (req, res, next) => {
             sign({_id: result._id})
                 .then(token => {
                     res.cookie('token', token, {maxAge: 10*60*1000}).json({result: 'LOGIN_SUCCESS'});
-                    console.log(req.cookies.token); // WARNING: ConsoleLog cause this sign function to run catch block or catch(). Error below
+                    console.log('Token: '+ req.cookies.token); // WARNING: ConsoleLog cause this sign function to run catch block or catch(). Error below
                                                     // UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
                                                     // CAUSE: req.cookie.token => Wrong | FIX: req.cookies.token => Correct
                 })
                 .catch(err => {
                     res.status(503).json({result: 'GENERATE_TOKEN_FAILED'});
-                    console.log(err);
                 });
         }).catch(err => {
             res.status(503).json({result: 'BCRYPT_SERVICE_FAILED'});
-            console.log(err);
         });
     }).catch(err => {
         res.status(503).json({result: 'QUERY_DATABASE_FAILED'});
-        console.log(err);
     });
 });
 

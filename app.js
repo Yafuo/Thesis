@@ -38,9 +38,9 @@ app.use(cookieParser());
 // app.use('/services', express.static(path.join(__dirname, 'services')));
 app.use(express.static(path.join(__dirname)));
 // app.use(express.static(__dirname + '../public'));
-console.log(__dirname);
+// console.log(__dirname);
 
-app.use('/', indexRouter);
+app.use('/api', indexRouter);
 app.use('/users', usersRouter);
 io.on('connection', function (socket) {
   console.log('You are connected!');

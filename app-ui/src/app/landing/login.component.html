@@ -41,7 +41,7 @@
                 Password must have at least 8 character.
               </div>
             </div>
-            <a href=" landing/password_reset">Forget password ?</a>
+            <a href=" landing/password_reset?email=unknown">Forget password ?</a>
           </div>
           <div class="form-group mb-0">
             <button [disabled]="email.errors || pass.errors" (click)="signin()" id="login" class="btn btn-primary form-control form-control-sm">Login</button>

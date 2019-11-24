@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit {
       email: this.user.email,
       password: this.user.password
     }
-    this.http.post('/login', params).subscribe(r => {
+    this.http.post('/api/login', params).subscribe(r => {
       console.log(r);
       this.router.navigate(['/home']);
     }, (err) => {

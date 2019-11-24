@@ -1,26 +1,37 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgxSpinnerService} from "ngx-spinner";
-import {faBars, faArrowLeft} from "@fortawesome/free-solid-svg-icons";
+import {faBars, faArrowLeft, faCheckCircle} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {HttpClient} from "@angular/common/http";
-import {Router} from "@angular/router";
+import {ActivatedRoute, ParamMap, Router} from "@angular/router";
+import {switchMap} from "rxjs/operators";
 
 @Component({
   selector: 'app-forgot-password',
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.scss']
 })
-export class ForgotPasswordComponent implements OnInit {
+export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
+  private sub: any;
   list = ['Sign Up', 'Exit'];
   url = ['/landing/signup', '/landing/login'];
   faBars = faBars;
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
+  faCheckCircle = faCheckCircle;
   mail= '';
-  constructor(private http: HttpClient, private spinner: NgxSpinnerService, private router: Router) { }
+  encryptedEmail = '';
+  password = '';
+  isKnownEmail = false;
+  isSent= false;
+  isChanged=  false;
+  constructor(private http: HttpClient, private spinner: NgxSpinnerService, private router: Router,
+              private activeRoute: ActivatedRoute) { }
 
   ngOnInit() {
+    this.encryptedEmail = this.activeRoute.snapshot.queryParams['email'];
+    this.isKnownEmail = this.encryptedEmail.indexOf('unknown') < 0;
     this.spinner.show();
 
     setTimeout(() => {
@@ -28,8 +39,36 @@ export class ForgotPasswordComponent implements OnInit {
     }, 600);
   }
 
-  sendMail() {
+  ngOnDestroy() {
+    // this.sub.unsubscribe();
+  }
 
+  sendMail() {
+    const params = {
+      receiverMail: this.mail,
+      plainContent: 'Please, click the link below to reset your password!\n'
+    };
+    this.http.post('/api/reset-password', params).subscribe(r => {
+      console.log(r);
+      // r is Object.
+      // So we need to convert it to type any.
+      const json = r as any;
+      this.isSent = json.result.indexOf('SENT_SUCCESS') > -1;
+    });
+  }
+
+  sendPass() {
+    const params = {
+      encryptedEmail: this.encryptedEmail,
+      password: this.password
+    };
+    this.http.post('/api/reset-for', params).subscribe(r => {
+      console.log(r);
+      // r is Object.
+      // So we need to convert it to type any.
+      const json = r as any;
+      this.isChanged = json.result.indexOf('PASSWORD_CHANGED_SUCCESS')> -1;
+    });
   }
 
   navTo(i: number) {
