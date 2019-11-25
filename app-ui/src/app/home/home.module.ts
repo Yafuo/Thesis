@@ -8,6 +8,7 @@ import {MatListModule} from "@angular/material/list";
 import {BsDropdownModule} from "ngx-bootstrap";
 import {CommonModule} from "@angular/common";
 import {FormsModule} from "@angular/forms";
+import {TranslateModule} from "@ngx-translate/core";
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import {FormsModule} from "@angular/forms";
     RouterModule,
     MatSidenavModule,
     MatListModule,
-    BsDropdownModule.forRoot()
+    BsDropdownModule.forRoot(),
+    TranslateModule
   ],
   providers: []
 })

@@ -1,4 +1,10 @@
 {
   "WRONG_PASSWORD": "Wrong password. Please try again!",
-  "WRONG_EMAIL": "Wrong email. Please try again!"
+  "WRONG_EMAIL": "Wrong email. Please try again!",
+  "DISTRICT": {
+    "TAN-PHU": "Tan Phu",
+    "TAN-BINH": "Tan Binh",
+    "BINH-THANH": "Binh Thanh",
+    "PHU-NHUAN": "Phu Nhuan"
+  }
 }
