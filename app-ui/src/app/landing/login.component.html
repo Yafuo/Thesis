@@ -22,7 +22,7 @@
             <label class="mb-0">Email:</label>
             <input type="email" class="form-control form-control-sm" required
                    placeholder="Enter email" [(ngModel)]="user.email" #email="ngModel"
-                   pattern="^[a-zA-Z0-9]+\@[^\@\.]+\.[^\@\.]+">
+                   pattern="^[a-zA-Z0-9][^\@]+\@[a-zA-Z0-9]+\.[a-zA-Z0-9]+">
             <div *ngIf="email.invalid && (email.dirty || email.touched)" class="form-control-sm alert-danger">
               <div *ngIf="email.errors.required">
                 Email is required.
@@ -57,7 +57,7 @@
       </div>
       <div class="footer">
         <div class="text-center" style="color: white">&copy; Copyright 2019 Designed by Yafuo.</div>
-        <div class="language">
+        <div class="language text-center">
           <a href="">|| Vietnamese ||</a>
           <a href=""> English ||</a>
           <a href=""> Español ||</a>

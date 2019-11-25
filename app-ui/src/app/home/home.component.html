@@ -1,1 +1,7 @@
-<p>Home work!</p>
+<div class="btn-group-sm">
+  <select class="btn-outline-primary form-control" [(ngModel)]="selectedDistrict">
+    <option *ngFor="let d of districtList" [value]="d">
+      {{d}}
+    </option>
+  </select>
+</div>

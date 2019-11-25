@@ -5,6 +5,9 @@ import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 import {RouterModule} from "@angular/router";
 import {MatSidenavModule} from "@angular/material/sidenav";
 import {MatListModule} from "@angular/material/list";
+import {BsDropdownModule} from "ngx-bootstrap";
+import {CommonModule} from "@angular/common";
+import {FormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -13,9 +16,12 @@ import {MatListModule} from "@angular/material/list";
   imports: [
     HomeRoutingModule,
     FontAwesomeModule,
+    CommonModule,
+    FormsModule,
     RouterModule,
     MatSidenavModule,
-    MatListModule
+    MatListModule,
+    BsDropdownModule.forRoot()
   ],
   providers: []
 })

@@ -1,6 +1,12 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgxSpinnerService} from "ngx-spinner";
-import {faBars, faArrowLeft, faCheckCircle} from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faArrowLeft,
+  faCheckCircle,
+  faUserPlus,
+  faSignInAlt
+} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {HttpClient} from "@angular/common/http";
 import {ActivatedRoute, ParamMap, Router} from "@angular/router";
@@ -14,18 +20,21 @@ import {switchMap} from "rxjs/operators";
 export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
   private sub: any;
-  list = ['Sign Up', 'Exit'];
+  list = ['Sign Up', 'Login'];
   url = ['/landing/signup', '/landing/login'];
   faBars = faBars;
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
   faCheckCircle = faCheckCircle;
+  faUserPlus = faUserPlus;
+  faSignInAlt = faSignInAlt;
   mail= '';
   encryptedEmail = '';
   password = '';
   isKnownEmail = false;
   isSent= false;
   isChanged=  false;
+  navBarList = [this.faUserPlus, this.faSignInAlt];
   constructor(private http: HttpClient, private spinner: NgxSpinnerService, private router: Router,
               private activeRoute: ActivatedRoute) { }
 
