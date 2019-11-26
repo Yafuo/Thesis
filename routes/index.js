@@ -173,7 +173,7 @@ router.post('/login', (req, res, next) => {
             }
             sign({_id: result._id})
                 .then(token => {
-                    res.cookie('token', token, {maxAge: 10*60*1000}).json({result: 'LOGIN_SUCCESS'});
+                    res.cookie('token', token, {maxAge: 20*60*1000}).json({result: 'LOGIN_SUCCESS'});
                     console.log('Token: '+ req.cookies.token); // WARNING: ConsoleLog cause this sign function to run catch block or catch(). Error below
                                                     // UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
                                                     // CAUSE: req.cookie.token => Wrong | FIX: req.cookies.token => Correct

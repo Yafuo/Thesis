@@ -1,7 +1,22 @@
-<div class="btn-group-sm">
-  <select class="btn-outline-primary form-control" [(ngModel)]="selectedDistrict">
-    <option *ngFor="let d of districtList" [value]="d">
-      {{"DISTRICT."+d | translate}}
-    </option>
-  </select>
+<!--<form>-->
+<!--  <mat-form-field>-->
+<!--    <fa-icon [icon]="faSearch"></fa-icon>-->
+<!--    <input matInput placeholder="Search ..." type="text"/>-->
+<!--  </mat-form-field>-->
+<!--</form>-->
+<div class="row">
+
+  <mat-form-field class="pl-4 col-8">
+    <input matInput type="text" placeholder="Search ..." [formControl]="myControl" [matAutocomplete]="auto">
+    <mat-icon class="search-fn" matSuffix>search</mat-icon>
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+      <mat-option *ngFor="let d of filterList | async" [value]="d">
+        {{d}}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+  <span class="col-4 text-center pt-2 p-0">
+    <button mat-stroked-button color="primary"><mat-icon matPrefix>filter_list</mat-icon> Filter</button>
+  </span>
+
 </div>

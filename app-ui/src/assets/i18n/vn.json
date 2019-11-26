@@ -1,0 +1,10 @@
+{
+  "WRONG_PASSWORD": "Sai mật khẩu. Vui lòng nhập lại!",
+  "WRONG_EMAIL": "Sai tên đăng nhập. Vui lòng nhập lại!",
+  "DISTRICT": {
+    "Tan Phu": "Tân Phú",
+    "Tan Binh": "Tân Bình",
+    "Binh Thanh": "Bình Thạnh",
+    "Phu Nhuan": "Phú Nhuận"
+  }
+}

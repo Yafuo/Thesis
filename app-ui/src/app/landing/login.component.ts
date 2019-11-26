@@ -31,7 +31,6 @@ export class LoginComponent implements OnInit {
   user = new User('', '', '');
   constructor(private translate: TranslateService, private http: HttpClient
               , private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) {
-    translate.setDefaultLang('en');
   }
 
   ngOnInit() {

@@ -7,8 +7,12 @@ import {MatSidenavModule} from "@angular/material/sidenav";
 import {MatListModule} from "@angular/material/list";
 import {BsDropdownModule} from "ngx-bootstrap";
 import {CommonModule} from "@angular/common";
-import {FormsModule} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {TranslateModule} from "@ngx-translate/core";
+import {MatInputModule} from "@angular/material/input";
+import {MatIconModule} from "@angular/material/icon";
+import {MatAutocompleteModule} from "@angular/material/autocomplete";
+import {MatButtonModule} from "@angular/material/button";
 
 @NgModule({
   declarations: [
@@ -22,8 +26,13 @@ import {TranslateModule} from "@ngx-translate/core";
     RouterModule,
     MatSidenavModule,
     MatListModule,
+    MatInputModule,
     BsDropdownModule.forRoot(),
-    TranslateModule
+    TranslateModule,
+    MatIconModule,
+    MatAutocompleteModule,
+    MatButtonModule,
+    ReactiveFormsModule
   ],
   providers: []
 })
