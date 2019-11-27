@@ -1,3 +1,7 @@
 .search-fn {
 
 }
+.wrap-result {
+  -webkit-transition: height .3s ease;
+  height: 0;
+}

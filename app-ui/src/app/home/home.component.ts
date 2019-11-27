@@ -19,11 +19,12 @@ export class HomeComponent implements OnInit {
   selectedDistrict = 'Tan Phu';
   myControl = new FormControl();
   filterList : Observable<string[]>;
+  isFilterClicked = false;
+  height = '';
   constructor(private translate: TranslateService) { }
 
   ngOnInit() {
-    this.districtList.map(d => d = this._getTranslation(d));
-    console.log(this.districtList);
+    this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterList = this.myControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value))
@@ -36,12 +37,16 @@ export class HomeComponent implements OnInit {
   }
 
   private _getTranslation(value: string) : string {
-    console.log('delay');
     let wordTranslated = 'not_ready';
     this.translate.get(`DISTRICT.${value}`).subscribe(word => {
       wordTranslated = word;
     });
     return wordTranslated;
+  }
+
+  toggleFilter() {
+    this.isFilterClicked = !this.isFilterClicked;
+    this.height = 'fit-content';
   }
 
 }
