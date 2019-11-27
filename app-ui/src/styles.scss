@@ -16,9 +16,6 @@ mat-sidenav-container {
 mat-sidenav {
   width: 100px;
 }
-.mat-list-option {
-  border-bottom: 1px solid aqua;
-}
 .footer {
   background-color: black;
   position: absolute;
@@ -31,3 +28,16 @@ a {
     color: white;
   }
 }
+.wrap-content {
+  .wrap-symbol {
+    text-align: center;
+  }
+  .mat-list-option {
+    border-bottom: 1px solid aqua;
+  }
+}
+//@media only screen and (min-device-width: 576px) and (max-device-width: 768px) {
+  .mat-expansion-indicator {
+    margin-right: 15px;
+  }
+//}

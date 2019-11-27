@@ -1,6 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { faChevronDown, faSearch } from "@fortawesome/free-solid-svg-icons";
-import {BsDropdownConfig} from "ngx-bootstrap";
+import {Component, OnInit, ViewEncapsulation} from '@angular/core';
+import {faChevronDown, faSearch} from "@fortawesome/free-solid-svg-icons";
 import {TranslateService} from "@ngx-translate/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
@@ -9,31 +8,41 @@ import {map, startWith} from "rxjs/operators";
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated
 })
 export class HomeComponent implements OnInit {
 
   faChevronDown = faChevronDown;
   faSearch = faSearch;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
+  googleMapsList = ['10 Ho Dac Di, P.Tay Thanh, Q.Tan Phu', '22/44 CMT8, P.2, Q.Tan Binh',
+    '49a Phan Dang Luu, P.7, Q.Phu Nhuan', '96 Le Quang Dinh, P.14, Q.Binh Thanh'];
   selectedDistrict = 'Tan Phu';
   myControl = new FormControl();
   filterList : Observable<string[]>;
+  filterMapsList: Observable<string[]>;
   isFilterClicked = false;
+  packageList = ['1 hour', '3 hour', '1 day'];
   height = '';
+  selectedPackage = '';
   constructor(private translate: TranslateService) { }
 
   ngOnInit() {
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterList = this.myControl.valueChanges.pipe(
       startWith(''),
-      map(value => this._filter(value))
+      map(value => this._filter(value, 1))
+    );
+    this.filterMapsList = this.myControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value, 2))
     );
   }
 
-  private _filter(value: string): string[] {
+  private _filter(value: string, opt: number): string[] {
     const filterValue = value.toLowerCase();
-    return this.districtList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
+    return opt === 1 ? this.districtList.filter(d => d.toLowerCase().indexOf(filterValue) > -1) : this.googleMapsList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
   }
 
   private _getTranslation(value: string) : string {
@@ -46,7 +55,11 @@ export class HomeComponent implements OnInit {
 
   toggleFilter() {
     this.isFilterClicked = !this.isFilterClicked;
-    this.height = 'fit-content';
+  }
+
+  display(a: any): any {
+    console.log(a);
+    return a;
   }
 
 }

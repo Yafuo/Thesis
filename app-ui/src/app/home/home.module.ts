@@ -3,17 +3,15 @@ import {HomeComponent} from "./home.component";
 import {HomeRoutingModule} from "./home-routing.module";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 import {RouterModule} from "@angular/router";
-import {MatSidenavModule} from "@angular/material/sidenav";
-import {MatListModule} from "@angular/material/list";
 import {BsDropdownModule} from "ngx-bootstrap";
 import {CommonModule} from "@angular/common";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {TranslateModule} from "@ngx-translate/core";
-import {MatInputModule} from "@angular/material/input";
-import {MatIconModule} from "@angular/material/icon";
-import {MatAutocompleteModule} from "@angular/material/autocomplete";
-import {MatButtonModule} from "@angular/material/button";
-import {MatCardModule} from "@angular/material/card";
+import {
+  MatCheckboxModule, MatSidenavModule, MatListModule
+  , MatInputModule, MatIconModule, MatAutocompleteModule, MatButtonModule, MatCardModule, MatExpansionModule
+} from "@angular/material";
+import {MatRadioModule} from "@angular/material/radio";
 
 @NgModule({
   declarations: [
@@ -34,6 +32,9 @@ import {MatCardModule} from "@angular/material/card";
     MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
+    MatCheckboxModule,
+    MatRadioModule,
+    MatExpansionModule,
     ReactiveFormsModule
   ],
   providers: []

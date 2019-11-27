@@ -4,7 +4,7 @@
 <!--    <input matInput placeholder="Search ..." type="text"/>-->
 <!--  </mat-form-field>-->
 <!--</form>-->
-<div class="wrap-tools row">
+<div class="wrap-tools row mr-0">
 
   <mat-form-field class="pl-4 col-8">
     <input matInput type="text" placeholder="Search ..." [formControl]="myControl" [matAutocomplete]="auto">
@@ -16,28 +16,72 @@
     </mat-autocomplete>
   </mat-form-field>
   <span class="col-4 text-center pt-2 p-0">
-    <button mat-stroked-button color="primary" (click)="toggleFilter()"><mat-icon matPrefix>filter_list</mat-icon> Filter</button>
+    <button class="filter-btn" mat-stroked-button color="primary" (click)="toggleFilter()"><mat-icon matPrefix>filter_list</mat-icon> Filter</button>
   </span>
 
 </div>
-<div class="wrap-result" *ngIf="isFilterClicked">
-  <mat-card class="example-card">
-    <mat-card-header>
-      <div mat-card-avatar class="example-header-image"></div>
-      <mat-card-title>Shiba Inu</mat-card-title>
-      <mat-card-subtitle>Dog Breed</mat-card-subtitle>
-    </mat-card-header>
-    <img mat-card-image src="https://material.angular.io/assets/img/examples/shiba2.jpg" alt="Photo of a Shiba Inu">
-    <mat-card-content>
-      <p>
-        The Shiba Inu is the smallest of the six original and distinct spitz breeds of dog from Japan.
-        A small, agile dog that copes very well with mountainous terrain, the Shiba Inu was originally
-        bred for hunting.
-      </p>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-button>LIKE</button>
-      <button mat-button>SHARE</button>
-    </mat-card-actions>
-  </mat-card>
+<div class="wrap-filter" *ngIf="isFilterClicked">
+  <div class=" row mr-0">
+    <mat-form-field class="pl-4 col-8">
+      <mat-icon [inline]="true" class="search-fn" matPrefix>location_searching</mat-icon>
+      <input matInput type="text" placeholder=" Choose destination" [formControl]="myControl" [matAutocomplete]="auto">
+      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+        <mat-option *ngFor="let add of filterMapsList | async" [value]="add">
+          <span style="font-size: 14px">{{add}}</span>
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+  <div class=" row mr-0">
+    <mat-form-field class="pl-4 col-8">
+      <mat-icon [inline]="true" class="search-fn" matPrefix>location_on</mat-icon>
+      <input matInput type="text" placeholder=" Choose start location" [formControl]="myControl"
+             [matAutocomplete]="auto">
+      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+        <mat-option *ngFor="let add of filterMapsList | async" [value]="add">
+          <span style="font-size: 14px">{{add}}</span>
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+    <div class="pl-4 col-4 d-flex align-items-center">
+      <mat-checkbox style="font-size: small">Your location</mat-checkbox>
+    </div>
+  </div>
+  <mat-accordion [hideToggle]="true">
+    <!--<mat-expansion-panel>-->
+    <!--<mat-expansion-panel-header>-->
+    <!--Pick Package-->
+    <!--</mat-expansion-panel-header>-->
+    <!--<mat-panel-description>-->
+    <!--A package helps us to find available slot-->
+    <!--</mat-panel-description>-->
+    <!--</mat-expansion-panel>-->
+    <!--<mat-selection-list #package>-->
+    <!--<mat-list-option *ngFor="let p of packageList">-->
+    <!--{{p}}-->
+    <!--</mat-list-option>-->
+    <!--</mat-selection-list>-->
+
+    <!--<p>-->
+    <!--Options selected: {{p.selectedOptions.selected.length}}-->
+    <!--</p>-->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header class="row">
+        <mat-panel-title class="col-2 col-sm-2 p-0">
+          Package
+        </mat-panel-title>
+        <mat-panel-description class="col-8 col-sm-8 p-0">
+          <span>Helps us to find available slot</span>
+        </mat-panel-description>
+        <mat-panel-description class="col-2 col-sm-2 p-0">
+          <mat-icon class="indicator">keyboard_arrow_down</mat-icon>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <div class="row">
+        <ul class="col-12 col-sm-6 list-group">
+          <li class="list-group-item" *ngFor="let p of packageList">{{p}}</li>
+        </ul>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
 </div>
