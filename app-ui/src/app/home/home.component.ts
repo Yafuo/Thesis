@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, OnInit, Renderer2, ViewEncapsulation} from '@angular/core';
 import {faChevronDown, faSearch} from "@fortawesome/free-solid-svg-icons";
 import {TranslateService} from "@ngx-translate/core";
 import {FormControl} from "@angular/forms";
@@ -26,7 +26,8 @@ export class HomeComponent implements OnInit {
   packageList = ['1 hour', '3 hour', '1 day'];
   height = '';
   selectedPackage = '';
-  constructor(private translate: TranslateService) { }
+  state = 'down';
+  constructor(private translate: TranslateService, private render: Renderer2) { }
 
   ngOnInit() {
     this.districtList = this.districtList.map(d => this._getTranslation(d));
@@ -57,9 +58,9 @@ export class HomeComponent implements OnInit {
     this.isFilterClicked = !this.isFilterClicked;
   }
 
-  display(a: any): any {
-    console.log(a);
-    return a;
+  display(stt: string) {
+    // this.render.setStyle(document.body.getElementsByClassName('indicator'), 'transform', 'rotate(180deg)');
+    this.state = this.state === 'down' ? 'up' :'down';
   }
 
 }

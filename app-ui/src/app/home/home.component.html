@@ -65,7 +65,7 @@
     <!--<p>-->
     <!--Options selected: {{p.selectedOptions.selected.length}}-->
     <!--</p>-->
-    <mat-expansion-panel>
+    <mat-expansion-panel (opened)="display('up')" (closed)="display('down')">
       <mat-expansion-panel-header class="row">
         <mat-panel-title class="col-2 col-sm-2 p-0">
           Package
@@ -73,12 +73,13 @@
         <mat-panel-description class="col-8 col-sm-8 p-0">
           <span>Helps us to find available slot</span>
         </mat-panel-description>
-        <mat-panel-description class="col-2 col-sm-2 p-0">
-          <mat-icon class="indicator">keyboard_arrow_down</mat-icon>
+        <mat-panel-description class="col-2 col-sm-2 p-0 indicator{{'-'+ state}}">
+<!--          <mat-icon class="indicator{{'-'+ state}}">keyboard_arrow_down</mat-icon>-->
+          <mat-icon>keyboard_arrow_down</mat-icon>
         </mat-panel-description>
       </mat-expansion-panel-header>
       <div class="row">
-        <ul class="col-12 col-sm-6 list-group">
+        <ul class="col-12 col-sm-6 pr-0 list-group">
           <li class="list-group-item" *ngFor="let p of packageList">{{p}}</li>
         </ul>
       </div>

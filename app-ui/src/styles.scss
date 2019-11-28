@@ -36,8 +36,23 @@ a {
     border-bottom: 1px solid aqua;
   }
 }
+.indicator-down {
+  -webkit-transition: transform .8s ease-in-out;
+  transition: transform .8s ease-in-out;
+}
+.indicator-up {
+  transform-origin: center;
+  transform: rotate(180deg);
+  -webkit-transform:rotate(180deg);
+}
+//mat-expansion-panel {
+//  .indicator {
+//    -webkit-transform: rotate(180deg);
+//    transform: rotate(180deg);
+//  }
+//}
 //@media only screen and (min-device-width: 576px) and (max-device-width: 768px) {
-  .mat-expansion-indicator {
-    margin-right: 15px;
-  }
+//  .mat-expansion-indicator {
+//    margin-right: 15px;
+//  }
 //}
