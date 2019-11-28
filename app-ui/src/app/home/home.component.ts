@@ -25,7 +25,6 @@ export class HomeComponent implements OnInit {
   isFilterClicked = false;
   packageList = ['1 hour', '3 hour', '1 day'];
   height = '';
-  selectedPackage = '';
   state = 'down';
   constructor(private translate: TranslateService, private render: Renderer2) { }
 

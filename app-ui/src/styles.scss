@@ -37,13 +37,13 @@ a {
   }
 }
 .indicator-down {
-  -webkit-transition: transform .8s ease-in-out;
-  transition: transform .8s ease-in-out;
+  transform-origin: 50% 40%;
+  transition: transform .2s ease-in-out;
 }
 .indicator-up {
-  transform-origin: center;
+  transform-origin: 50% 40%;
   transform: rotate(180deg);
-  -webkit-transform:rotate(180deg);
+  transition: transform .2s ease-in-out;
 }
 //mat-expansion-panel {
 //  .indicator {
@@ -52,7 +52,5 @@ a {
 //  }
 //}
 //@media only screen and (min-device-width: 576px) and (max-device-width: 768px) {
-//  .mat-expansion-indicator {
-//    margin-right: 15px;
-//  }
+//
 //}

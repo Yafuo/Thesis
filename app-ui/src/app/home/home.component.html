@@ -20,8 +20,8 @@
   </span>
 
 </div>
-<div class="wrap-filter" *ngIf="isFilterClicked">
-  <div class=" row mr-0">
+<div class="wrap-filter hide-this-{{!isFilterClicked}}">
+  <div class="abc row mr-0">
     <mat-form-field class="pl-4 col-8">
       <mat-icon [inline]="true" class="search-fn" matPrefix>location_searching</mat-icon>
       <input matInput type="text" placeholder=" Choose destination" [formControl]="myControl" [matAutocomplete]="auto">
@@ -32,7 +32,7 @@
       </mat-autocomplete>
     </mat-form-field>
   </div>
-  <div class=" row mr-0">
+  <div class="abc row mr-0">
     <mat-form-field class="pl-4 col-8">
       <mat-icon [inline]="true" class="search-fn" matPrefix>location_on</mat-icon>
       <input matInput type="text" placeholder=" Choose start location" [formControl]="myControl"
@@ -43,7 +43,7 @@
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>
-    <div class="pl-4 col-4 d-flex align-items-center">
+    <div class="pl-0 col-4 d-flex align-items-center">
       <mat-checkbox style="font-size: small">Your location</mat-checkbox>
     </div>
   </div>
@@ -65,17 +65,19 @@
     <!--<p>-->
     <!--Options selected: {{p.selectedOptions.selected.length}}-->
     <!--</p>-->
-    <mat-expansion-panel (opened)="display('up')" (closed)="display('down')">
+    <mat-expansion-panel class="abc" (opened)="display('up')" (closed)="display('down')">
       <mat-expansion-panel-header class="row">
         <mat-panel-title class="col-2 col-sm-2 p-0">
           Package
         </mat-panel-title>
-        <mat-panel-description class="col-8 col-sm-8 p-0">
+        <mat-panel-description class="col-8 col-sm-8 p-0 mr-0">
           <span>Helps us to find available slot</span>
         </mat-panel-description>
-        <mat-panel-description class="col-2 col-sm-2 p-0 indicator{{'-'+ state}}">
+        <mat-panel-description class="col-2 col-sm-2 p-0">
 <!--          <mat-icon class="indicator{{'-'+ state}}">keyboard_arrow_down</mat-icon>-->
-          <mat-icon>keyboard_arrow_down</mat-icon>
+          <div class=" indicator{{'-'+ state}}">
+            <mat-icon>keyboard_arrow_down</mat-icon>
+          </div>
         </mat-panel-description>
       </mat-expansion-panel-header>
       <div class="row">
