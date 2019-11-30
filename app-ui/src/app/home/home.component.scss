@@ -41,7 +41,6 @@
   }
 }
 .hide-this-false .abc {
-  opacity: 1;
   max-height: 500px;
   transition: all .5s ease;
   //height: 65.5px;
@@ -53,7 +52,7 @@
   border-top: none;
   .abc {
     max-height: 0;
-    opacity: 0;
+    overflow: hidden;
     transition: all .2s ease;
     //height: 0;
   }

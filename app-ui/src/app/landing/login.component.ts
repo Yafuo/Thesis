@@ -15,7 +15,7 @@ import {TranslateService} from "@ngx-translate/core";
 })
 export class LoginComponent implements OnInit {
 
-  list = ['Sign Up', 'Exit'];
+  list = ['Sign up', 'Exit'];
   url = ['/landing/signup', '#'];
   wrongList = ['WRONG_PASSWORD', 'WRONG_EMAIL'];
   wrongIndex = -1;

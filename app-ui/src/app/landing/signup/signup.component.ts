@@ -12,7 +12,7 @@ import {CookieService} from "ngx-cookie-service";
 })
 export class SignupComponent implements OnInit {
 
-  list = ['Sign In', 'Exit'];
+  list = ['Sign in', 'Exit'];
   url = ['/landing/login', '#'];
   faBars = faBars;
   faArrowLeft = faArrowLeft;

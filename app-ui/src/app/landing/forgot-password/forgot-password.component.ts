@@ -20,7 +20,7 @@ import {switchMap} from "rxjs/operators";
 export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
   private sub: any;
-  list = ['Sign Up', 'Login'];
+  list = ['Sign up', 'Login'];
   url = ['/landing/signup', '/landing/login'];
   faBars = faBars;
   faArrowLeft = faArrowLeft;
