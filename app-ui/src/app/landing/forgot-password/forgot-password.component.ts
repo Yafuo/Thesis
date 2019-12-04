@@ -5,7 +5,8 @@ import {
   faArrowLeft,
   faCheckCircle,
   faUserPlus,
-  faSignInAlt
+  faSignInAlt,
+  faPowerOff
 } from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {HttpClient} from "@angular/common/http";
@@ -35,6 +36,8 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   isSent= false;
   isChanged=  false;
   navBarList = [this.faUserPlus, this.faSignInAlt];
+  langList = ['Vietnamese', 'English', 'Español', 'Chinese'];
+  faPowerOff = faPowerOff;
   constructor(private http: HttpClient, private spinner: NgxSpinnerService, private router: Router,
               private activeRoute: ActivatedRoute) { }
 

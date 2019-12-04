@@ -27,6 +27,7 @@ export class LoginComponent implements OnInit {
   faUserPlus =  faUserPlus;
   faPowerOff= faPowerOff;
   navBarList = [this.faUserPlus, this.faPowerOff];
+  langList = ['Vietnamese', 'English', 'Español', 'Chinese'];
   userIconList = [this.faKey, this.faUser];
   user = new User('', '', '');
   constructor(private translate: TranslateService, private http: HttpClient

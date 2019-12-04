@@ -12,6 +12,14 @@
     </mat-sidenav>
     <mat-sidenav-content>
       <fa-icon (click)="sidenav.open()" [icon]="faBars" size="2x" [styles]="{'color': 'black'}"></fa-icon>
+      <div class="float-right">
+        <select class="form-control form-control-sm">
+          <option [value]="lang" *ngFor="let lang of langList">
+            <span><fa-icon [icon]="faPowerOff" [styles]="{'color': 'purple'}"></fa-icon></span>
+            <span>{{lang| translate}}</span>
+          </option>
+        </select>
+      </div>
       <div class="login-page container-fluid">
         <div class="wrap-symbol">
           <fa-icon [icon]="faGithub" size="10x"></fa-icon>

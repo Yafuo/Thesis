@@ -21,6 +21,7 @@ export class SignupComponent implements OnInit {
   faSignInAlt = faSignInAlt;
   faPowerOff = faPowerOff;
   navBarList = [this.faSignInAlt, this.faPowerOff];
+  langList = ['Vietnamese', 'English', 'Español', 'Chinese'];
   user = new User('', '', '');
   constructor(private http: HttpClient, private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) { }
 
