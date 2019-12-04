@@ -12,6 +12,7 @@ import {
   , MatInputModule, MatIconModule, MatAutocompleteModule, MatButtonModule, MatCardModule, MatExpansionModule
 } from "@angular/material";
 import {MatRadioModule} from "@angular/material/radio";
+import {OwlDateTimeModule, OwlNativeDateTimeModule} from "ng-pick-datetime";
 
 @NgModule({
   declarations: [
@@ -35,7 +36,9 @@ import {MatRadioModule} from "@angular/material/radio";
     MatCheckboxModule,
     MatRadioModule,
     MatExpansionModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    OwlDateTimeModule,
+    OwlNativeDateTimeModule
   ],
   providers: []
 })

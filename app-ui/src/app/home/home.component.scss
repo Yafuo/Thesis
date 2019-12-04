@@ -15,7 +15,9 @@
 }
 .wrap-filter {
   position: relative;
-  border-top: 1px solid #dcdde1;
+  border: 1px solid #673ab7;
+  border-radius: 5px;
+  margin: 4px;
 }
 .wrap-filter:after {
   content: "";
@@ -33,7 +35,7 @@
   right: 10vw;
   border-left: 20px solid transparent;
   border-right: 20px solid transparent;
-  border-bottom: 20px solid #dcdde1;
+  border-bottom: 20px solid #673ab7;
 }
 @media screen and (orientation: landscape) {
   .wrap-filter:after, .wrap-filter:before {
@@ -49,7 +51,7 @@
   &.wrap-filter:before, &.wrap-filter:after {
     display: none;
   }
-  border-top: none;
+  border: none;
   .abc {
     max-height: 0;
     overflow: hidden;

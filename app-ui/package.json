@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --proxy-config proxy-conf.js --disable-host-check",
+    "start": "ng serve --port 4222 --proxy-config proxy-conf.js --disable-host-check",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
@@ -28,6 +28,7 @@
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
     "bootstrap": "^4.3.1",
+    "ng-pick-datetime": "^7.0.0",
     "ngx-bootstrap": "^5.2.0",
     "ngx-cookie-service": "^2.2.0",
     "ngx-spinner": "^8.0.3",

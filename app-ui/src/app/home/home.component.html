@@ -1,9 +1,3 @@
-<!--<form>-->
-<!--  <mat-form-field>-->
-<!--    <fa-icon [icon]="faSearch"></fa-icon>-->
-<!--    <input matInput placeholder="Search ..." type="text"/>-->
-<!--  </mat-form-field>-->
-<!--</form>-->
 <div class="wrap-tools row mr-0">
 
   <mat-form-field class="pl-4 col-8">
@@ -48,25 +42,8 @@
     </div>
   </div>
   <mat-accordion [hideToggle]="true">
-    <!--<mat-expansion-panel>-->
-    <!--<mat-expansion-panel-header>-->
-    <!--Pick Package-->
-    <!--</mat-expansion-panel-header>-->
-    <!--<mat-panel-description>-->
-    <!--A package helps us to find available slot-->
-    <!--</mat-panel-description>-->
-    <!--</mat-expansion-panel>-->
-    <!--<mat-selection-list #package>-->
-    <!--<mat-list-option *ngFor="let p of packageList">-->
-    <!--{{p}}-->
-    <!--</mat-list-option>-->
-    <!--</mat-selection-list>-->
-
-    <!--<p>-->
-    <!--Options selected: {{p.selectedOptions.selected.length}}-->
-    <!--</p>-->
-    <mat-expansion-panel class="abc" (opened)="display('up')" (closed)="display('down')">
-      <mat-expansion-panel-header class="row">
+    <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
+      <mat-expansion-panel-header style="font-size: 14px" class="row">
         <mat-panel-title class="col-2 col-sm-2 p-0">
           Package
         </mat-panel-title>
@@ -74,7 +51,6 @@
           <span>Helps us to find available slot</span>
         </mat-panel-description>
         <mat-panel-description class="col-2 col-sm-2 p-0">
-<!--          <mat-icon class="indicator{{'-'+ state}}">keyboard_arrow_down</mat-icon>-->
           <div class=" indicator{{'-'+ state}}">
             <mat-icon>keyboard_arrow_down</mat-icon>
           </div>
@@ -87,4 +63,17 @@
       </div>
     </mat-expansion-panel>
   </mat-accordion>
+  <div class="abc time-picker row mt-3 ml-0 mr-0">
+
+      <mat-form-field class="col-6 start-time">
+        <input [owlDateTime]="startTime" [owlDateTimeTrigger]="startTime" matInput placeholder="Start time">
+      </mat-form-field>
+      <owl-date-time pickerType="timer" #startTime></owl-date-time>
+
+      <mat-form-field class="col-6 end-time">
+        <input [owlDateTime]="endTime" [owlDateTimeTrigger]="endTime" matInput placeholder="End time">
+      </mat-form-field>
+      <owl-date-time pickerType="timer" #endTime></owl-date-time>
+
+  </div>
 </div>
