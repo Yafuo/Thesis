@@ -26,6 +26,8 @@ export class HomeComponent implements OnInit {
   packageList = ['1 hour', '3 hour', '1 day'];
   height = '';
   state = 'down';
+  arriveTime = new Date(Date.now());
+  leaveHomeTime = new Date(Date.now());
   constructor(private translate: TranslateService, private render: Renderer2) { }
 
   ngOnInit() {
@@ -51,6 +53,14 @@ export class HomeComponent implements OnInit {
       wordTranslated = word;
     });
     return wordTranslated;
+  }
+
+  private _checkValidTime(): boolean {
+    console.log('Ten ten')
+    if (this.arriveTime < this.leaveHomeTime) {
+      return true;
+    }
+    return false;
   }
 
   toggleFilter() {

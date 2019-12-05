@@ -64,16 +64,23 @@
     </mat-expansion-panel>
   </mat-accordion>
   <div class="abc time-picker row mt-3 ml-0 mr-0">
+    <mat-form-field class="col-6 start-time">
+      <input [owlDateTime]="startTime" [owlDateTimeTrigger]="startTime" matInput placeholder="Start time"
+             [(ngModel)]="leaveHomeTime">
+    </mat-form-field>
+    <owl-date-time pickerType="timer" #startTime></owl-date-time>
 
-      <mat-form-field class="col-6 start-time">
-        <input [owlDateTime]="startTime" [owlDateTimeTrigger]="startTime" matInput placeholder="Start time">
-      </mat-form-field>
-      <owl-date-time pickerType="timer" #startTime></owl-date-time>
-
-      <mat-form-field class="col-6 end-time">
-        <input [owlDateTime]="endTime" [owlDateTimeTrigger]="endTime" matInput placeholder="End time">
-      </mat-form-field>
-      <owl-date-time pickerType="timer" #endTime></owl-date-time>
-
+    <mat-form-field class="col-6 end-time">
+      <input [owlDateTime]="endTime" [owlDateTimeTrigger]="endTime" matInput placeholder="End time"
+             [(ngModel)]="arriveTime">
+    </mat-form-field>
+    <owl-date-time pickerType="timer" #endTime></owl-date-time>
+  </div>
+  <div class="abc row">
+    <div (change)="_checkValidTime()" *ngIf="_checkValidTime()" class="col-6 text-danger">{{'Invalid date range.'}}</div>
+    <div (change)="_checkValidTime()" *ngIf="!_checkValidTime()" class="col-6"></div>
+    <div class="col-6 text-center">
+      <button class="btn btn-warning">{{'Done'}}</button>
+    </div>
   </div>
 </div>
