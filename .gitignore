@@ -46,6 +46,8 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Miscelaneous
 package-lock.json
 /app-ui/package-lock.json
 /app-ui/.idea
+/app-ui/dist
