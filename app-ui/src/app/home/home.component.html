@@ -26,6 +26,9 @@
     <button (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
   </div>
 </div>
+<div *ngIf="qrUrl" class="wrap-qr-code overflow-auto">
+  <img src="{{qrUrl}}" style="width: 50vw">
+</div>
 <div class="wrap-filter hide-this-{{!isFilterClicked}}">
   <div class="abc row mr-0">
     <mat-form-field class="pl-4 col-8">

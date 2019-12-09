@@ -6,6 +6,7 @@ import {Observable} from "rxjs";
 import {map, startWith} from "rxjs/operators";
 import * as CryptoJS from "crypto-js";
 import {HttpClient} from "@angular/common/http";
+import * as io from 'socket.io-client';
 
 @Component({
   selector: 'app-home',
@@ -33,8 +34,14 @@ export class HomeComponent implements OnInit {
   arriveTime = new Date(Date.now());
   leaveHomeTime = new Date(Date.now());
   isShowResult = false;
+  qrUrl= '';
+  socket: SocketIOClient.Socket;
 
   constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient) {
+    this.socket = io.connect('http://localhost:3000');
+    this.socket.on('news', json => {
+      console.log(json);
+    })
   }
 
   ngOnInit() {
@@ -63,8 +70,8 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'https://820d7b05.ngrok.io',
-      notifyUrl: 'https://820d7b05.ngrok.io/receive-notify',
+      returnUrl: 'http://localhost:4222',
+      notifyUrl: 'http://localhost:4222/receive-notify',
       requestType: 'captureMoMoWallet',
       extraData: 'from uit.smartparking@gmail.com',
       signature: ''
@@ -73,10 +80,10 @@ export class HomeComponent implements OnInit {
     var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
     var signature = CryptoJS.HmacSHA256(data, secretKey);
     d.signature = signature.toString();
-    console.log(d.signature + '\n' + signature);
     this.http.post<any>('https://test-payment.momo.vn/gw_payment/transactionProcessor', JSON.stringify(d)).subscribe(r => {
+      console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
-      const qrUrl = prefix + r.qrCodeUrl.slice(42);
+      this.qrUrl = prefix + r.qrCodeUrl.slice(42);
     });
   }
 
