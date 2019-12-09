@@ -14,6 +14,18 @@
   </span>
 
 </div>
+<div *ngIf="isShowResult && !isFilterClicked" class="wrap-result row align-items-center">
+  <div class="col-4">
+  </div>
+  <div class="col-4">
+    <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
+    <span class="text-success">Available</span>
+  </div>
+  <owl-date-time pickerType="timer" #ultiTime></owl-date-time>
+  <div class="col-4">
+    <button (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
+  </div>
+</div>
 <div class="wrap-filter hide-this-{{!isFilterClicked}}">
   <div class="abc row mr-0">
     <mat-form-field class="pl-4 col-8">
@@ -58,7 +70,7 @@
       </mat-expansion-panel-header>
       <div class="row">
         <ul class="col-12 col-sm-6 pr-0 list-group">
-          <li class="list-group-item" *ngFor="let p of packageList">{{p}}</li>
+          <li class="list-group-item" (click)="onSelect(p)" *ngFor="let p of packageList">{{p.name}}</li>
         </ul>
       </div>
     </mat-expansion-panel>
@@ -70,17 +82,16 @@
     </mat-form-field>
     <owl-date-time pickerType="timer" #startTime></owl-date-time>
 
-    <mat-form-field class="col-6 end-time">
-      <input [owlDateTime]="endTime" [owlDateTimeTrigger]="endTime" matInput placeholder="End time"
+    <mat-form-field class="col-6 ready-park-time">
+      <input [owlDateTime]="readyParkTime" [owlDateTimeTrigger]="readyParkTime" matInput placeholder="Estimate park time"
              [(ngModel)]="arriveTime">
     </mat-form-field>
-    <owl-date-time pickerType="timer" #endTime></owl-date-time>
+    <owl-date-time pickerType="timer" #readyParkTime></owl-date-time>
   </div>
   <div class="abc row">
-    <div (change)="_checkValidTime()" *ngIf="_checkValidTime()" class="col-6 text-danger">{{'Invalid date range.'}}</div>
-    <div (change)="_checkValidTime()" *ngIf="!_checkValidTime()" class="col-6"></div>
+    <div class="col-6"></div>
     <div class="col-6 text-center">
-      <button class="btn btn-warning">{{'Done'}}</button>
+      <button (click)="filter()" class="btn btn-sm btn-warning">{{'Done'}}</button>
     </div>
   </div>
 </div>
