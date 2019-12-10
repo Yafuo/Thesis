@@ -1,10 +1,10 @@
 <div class="wrap-tools row mr-0">
 
   <mat-form-field class="pl-4 col-8">
-    <input matInput type="text" placeholder="Search ..." [formControl]="myControl" [matAutocomplete]="auto">
+    <input matInput type="text" placeholder="Search ..." [formControl]="allSearch" [matAutocomplete]="all">
     <mat-icon class="search-fn" matSuffix>search</mat-icon>
-    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-      <mat-option *ngFor="let d of filterList | async" [value]="d">
+    <mat-autocomplete autoActiveFirstOption #all="matAutocomplete">
+      <mat-option *ngFor="let d of filterAllSearchList | async" [value]="d">
         {{d}}
       </mat-option>
     </mat-autocomplete>
@@ -33,9 +33,9 @@
   <div class="abc row mr-0">
     <mat-form-field class="pl-4 col-8">
       <mat-icon [inline]="true" class="search-fn" matPrefix>location_searching</mat-icon>
-      <input matInput type="text" placeholder=" Choose destination" [formControl]="myControl" [matAutocomplete]="auto">
-      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-        <mat-option *ngFor="let add of filterMapsList | async" [value]="add">
+      <input matInput type="text" placeholder=" Choose destination" [formControl]="parkingStationControl" [matAutocomplete]="destination">
+      <mat-autocomplete autoActiveFirstOption #destination="matAutocomplete">
+        <mat-option *ngFor="let add of filterparkingStationList | async" [value]="add">
           <span style="font-size: 14px">{{add}}</span>
         </mat-option>
       </mat-autocomplete>
@@ -44,16 +44,16 @@
   <div class="abc row mr-0">
     <mat-form-field class="pl-4 col-8">
       <mat-icon [inline]="true" class="search-fn" matPrefix>location_on</mat-icon>
-      <input matInput type="text" placeholder=" Choose start location" [formControl]="myControl"
-             [matAutocomplete]="auto">
-      <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
-        <mat-option *ngFor="let add of filterMapsList | async" [value]="add">
+      <input matInput type="text" placeholder=" Choose start location" [formControl]="userLocationControl"
+             [matAutocomplete]="startLocation">
+      <mat-autocomplete autoActiveFirstOption #startLocation="matAutocomplete">
+        <mat-option *ngFor="let add of filterUserLocationList | async" [value]="add">
           <span style="font-size: 14px">{{add}}</span>
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>
     <div class="pl-0 col-4 d-flex align-items-center">
-      <mat-checkbox style="font-size: small">Your location</mat-checkbox>
+      <mat-checkbox style="font-size: small" [(ngModel)]="isCurrentLocationChecked">Your location</mat-checkbox>
     </div>
   </div>
   <mat-accordion [hideToggle]="true">
