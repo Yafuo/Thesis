@@ -35,13 +35,11 @@ export class HomeComponent implements OnInit {
   leaveHomeTime = new Date(Date.now());
   isShowResult = false;
   qrUrl= '';
+  isStake = true;
   socket: SocketIOClient.Socket;
 
   constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient) {
-    this.socket = io.connect('http://localhost:3000');
-    this.socket.on('news', json => {
-      console.log(json);
-    })
+    this._alwaysListenToChange();
   }
 
   ngOnInit() {
@@ -54,6 +52,13 @@ export class HomeComponent implements OnInit {
       startWith(''),
       map(value => this._filter(value, 2))
     );
+  }
+
+  private _alwaysListenToChange() {
+    this.socket = io.connect('http://localhost:3000');
+    this.socket.on('news', (news: any) => {
+      this.qrUrl = '';
+    });
   }
 
   filter() {
@@ -70,8 +75,8 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://localhost:4222',
-      notifyUrl: 'http://localhost:4222/receive-notify',
+      returnUrl: 'http://24ebfd58.ngrok.io',
+      notifyUrl: 'http://24ebfd58.ngrok.io/api/receive-notify',
       requestType: 'captureMoMoWallet',
       extraData: 'from uit.smartparking@gmail.com',
       signature: ''

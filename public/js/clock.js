@@ -35,7 +35,7 @@ $(document).ready(function () {
                 orderId: 'UIT'+ date,
                 orderInfo: p.name,
                 returnUrl: 'https://820d7b05.ngrok.io',
-                notifyUrl: 'https://820d7b05.ngrok.io/receive-notify',
+                notifyUrl: 'https://820d7b05.ngrok.io/api/receive-notify',
                 requestType: 'captureMoMoWallet',
                 extraData: 'abc@gmail.com',
         }
