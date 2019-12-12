@@ -78,8 +78,14 @@ export class HomeComponent implements OnInit {
     this.isShowResult = true;
     this.selectedParkingStation = this.parkingStationControl.value;
     console.log(this.selectedParkingStation);
+    const index = this.parkingStationList.indexOf(this.selectedParkingStation);
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
     console.log(this.selectedUserLocation);
+    const params = {
+      stationId: index,
+      stationAddress: this.selectedParkingStation,
+      package: this.selectedPackage
+    };
   }
 
   private _book() {

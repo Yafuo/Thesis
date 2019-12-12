@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 
 const parkingSlotSchema = mongoose.Schema([{
     _id: Object,
-    parkingAddress: String,
+    stationAddress: String,
     current: {
         userName: String,
         status: String,

@@ -85,6 +85,10 @@ router.post('/receive-notify', (req, res, next) => {
     req.app.io.emit('news', {billMsg: d.message, billCode: d.errorCode});
     res.json(d);
 });
+router.post('/get-available-slot', (req, res, next) => {
+    ParkingSlot.find({}).then()
+        .catch();
+});
 router.post('/reset-password', (req, res, next) => {
     var email = req.body.receiverMail;
     var secretKey = '1234qwer';
