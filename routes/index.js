@@ -86,18 +86,40 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.post('/get-available-slot', (req, res, next) => {
-    ParkingSlot.find({$query: {'future.endTime': {$lt: req.body.startTime}}, $limit: 1})
-        .sort({'future.endTime': -1})
+    ParkingSlot.find({$query: {'slots.future.endTime': {$lt: req.body.startTime}}})
         .then(r => {
-            var underBound = r;
-            ParkingSlot.find({$query: {}, $limit: 1}).sort({'future.startTime': 1})
+            var arr;
+            r.forEach(i => {
+                arr.push(i.slots.future.userName);
+            });
+            ParkingSlot.find({$query: {'slots.future.startTime': {$gt: req.body.endTime}}})
                 .then(r => {
-                    var upperBound = r;
+                    r.forEach(i => {
+                        arr.push(i.slots.future.userName);
+                    });
+                    if (arr.isEmpty()) {
+                        res.json({result: 'AVAILABLE'});
+                        return;
+                    }
+                    ParkingSlot.find({$query: {'slots.future.userName': {$nin: arr}}})
+                        .then(r => {
+                            if (!r) {
+                                res.json({result: 'AVAILABLE'});
+                                return;
+                            }
+                            res.json({result: 'NOT_AVAILABLE'});
+                        })
+                        .catch(err => {
+                            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with NOT IN)'});
+                        });
                 })
-                .catch();
-
+                .catch(err => {
+                    res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with GREATER THAN)'});
+                });
         })
-        .catch();
+        .catch(err => {
+            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with LESS THAN)'});
+        });
 });
 router.post('/reset-password', (req, res, next) => {
     var email = req.body.receiverMail;

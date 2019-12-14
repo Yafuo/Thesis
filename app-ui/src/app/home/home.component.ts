@@ -77,17 +77,18 @@ export class HomeComponent implements OnInit {
     this.toggleFilter();
     this.isShowResult = true;
     this.selectedParkingStation = this.parkingStationControl.value;
-    console.log(this.selectedParkingStation);
     const index = this.parkingStationList.indexOf(this.selectedParkingStation);
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
-    console.log(this.selectedUserLocation);
+    const readyParkTime = new Date(this.arriveTime);
+    readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const params = {
       stationId: index,
       stationAddress: this.selectedParkingStation,
       package: this.selectedPackage,
       startTime: this.arriveTime,
-      endTime: this.arriveTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value)
+      endTime: readyParkTime
     };
+    console.log(params);
   }
 
   private _book() {
