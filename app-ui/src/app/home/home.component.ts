@@ -33,8 +33,8 @@ export class HomeComponent implements OnInit {
   filterUserLocationList: Observable<string[]>;
   filterparkingStationList: Observable<string[]>;
   isFilterClicked = false;
-  packageList = [{name: '1 hour', cost: '5000'}, {name: '3 hour', cost: '20000'}, {name: '1 day', cost: '50000'}];
-  selectedPackage = {name: '', cost: ''};
+  packageList = [{name: '1 hour', cost: '5000', value: 1}, {name: '3 hour', cost: '20000', value: 3}, {name: '1 day', cost: '50000', value: 24}];
+  selectedPackage = {name: '', cost: '', value: 0};
   height = '';
   state = 'down';
   arriveTime = new Date(Date.now());
@@ -84,7 +84,9 @@ export class HomeComponent implements OnInit {
     const params = {
       stationId: index,
       stationAddress: this.selectedParkingStation,
-      package: this.selectedPackage
+      package: this.selectedPackage,
+      startTime: this.arriveTime,
+      endTime: this.arriveTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value)
     };
   }
 

@@ -86,7 +86,17 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.post('/get-available-slot', (req, res, next) => {
-    ParkingSlot.find({}).then()
+    ParkingSlot.find({$query: {'future.endTime': {$lt: req.body.startTime}}, $limit: 1})
+        .sort({'future.endTime': -1})
+        .then(r => {
+            var underBound = r;
+            ParkingSlot.find({$query: {}, $limit: 1}).sort({'future.startTime': 1})
+                .then(r => {
+                    var upperBound = r;
+                })
+                .catch();
+
+        })
         .catch();
 });
 router.post('/reset-password', (req, res, next) => {

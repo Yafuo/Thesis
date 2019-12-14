@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 
-const parkingSlotSchema = mongoose.Schema([{
+const parkingSlotSchema = mongoose.Schema({
     _id: Object,
     stationAddress: String,
     current: {
@@ -19,4 +19,4 @@ const parkingSlotSchema = mongoose.Schema([{
             endTime: Date
         }
     ]
-}]);
+});
