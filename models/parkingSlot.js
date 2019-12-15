@@ -1,8 +1,8 @@
 var mongoose = require('mongoose');
-
-const parkingSlotSchema = mongoose.Schema([
+var Schema = mongoose.Schema;
+const parkingSlotSchema = new Schema([
     {
-        _id: Object,
+        _id: {type: mongoose.Schema.ObjectId},
         stationAddress: String,
         slots: [
             {
@@ -27,3 +27,4 @@ const parkingSlotSchema = mongoose.Schema([
         ]
     }
 ]);
+module.exports = mongoose.model('ParkingSlot', parkingSlotSchema);

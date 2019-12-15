@@ -86,24 +86,31 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.post('/get-available-slot', (req, res, next) => {
-    ParkingSlot.find({$query: {'slots.future.endTime': {$lt: req.body.startTime}}})
+    ParkingSlot.find({'slots.future.endTime': {$lt: req.body.startTime}})
         .then(r => {
-            var arr;
+            var arr = [];
             r.forEach(i => {
                 arr.push(i.slots.future.userName);
             });
-            ParkingSlot.find({$query: {'slots.future.startTime': {$gt: req.body.endTime}}})
+            ParkingSlot.find({'slots.future.startTime': {$gt: req.body.endTime}})
                 .then(r => {
                     r.forEach(i => {
                         arr.push(i.slots.future.userName);
                     });
-                    if (arr.isEmpty()) {
+                    if (arr.length == 0) {
                         res.json({result: 'AVAILABLE'});
                         return;
                     }
-                    ParkingSlot.find({$query: {'slots.future.userName': {$nin: arr}}})
+                    ParkingSlot.find({'slots.future.userName': {$nin: arr}})
                         .then(r => {
-                            if (!r) {
+                            if (r.length == 0) {
+                                ParkingSlot.find({'current.userName': ''}).then(r => {
+                                    if (r.length == 0) {
+                                        console.log('Current is empty');
+                                    }
+                                })
+                                const data =
+                                ParkingSlot.save()
                                 res.json({result: 'AVAILABLE'});
                                 return;
                             }
@@ -114,10 +121,12 @@ router.post('/get-available-slot', (req, res, next) => {
                         });
                 })
                 .catch(err => {
+                    console.log(err);
                     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with GREATER THAN)'});
                 });
         })
         .catch(err => {
+            console.log(err);
             res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with LESS THAN)'});
         });
 });

@@ -85,8 +85,8 @@ export class HomeComponent implements OnInit {
       stationId: index,
       stationAddress: this.selectedParkingStation,
       package: this.selectedPackage,
-      startTime: this.arriveTime,
-      endTime: readyParkTime
+      startTime: new Date(this.arriveTime).toLocaleString(),
+      endTime: new Date(readyParkTime).toLocaleString()
     };
     console.log(params);
   }
