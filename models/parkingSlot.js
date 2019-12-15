@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 const parkingSlotSchema = new Schema([
     {
-        _id: {type: mongoose.Schema.ObjectId},
+        _id: Number,
         stationAddress: String,
         slots: [
             {
