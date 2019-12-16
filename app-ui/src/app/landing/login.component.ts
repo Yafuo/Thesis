@@ -7,6 +7,7 @@ import {Router} from "@angular/router";
 import {NgxSpinnerService} from "ngx-spinner";
 import {CookieService} from "ngx-cookie-service";
 import {TranslateService} from "@ngx-translate/core";
+import {EventBusService} from "../common/service/event-bus.service";
 
 @Component({
   selector: 'app-login',
@@ -31,7 +32,7 @@ export class LoginComponent implements OnInit {
   userIconList = [this.faKey, this.faUser];
   user = new User('', '', '');
   constructor(private translate: TranslateService, private http: HttpClient
-              , private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) {
+              , private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService, private eventBus: EventBusService) {
   }
 
   ngOnInit() {

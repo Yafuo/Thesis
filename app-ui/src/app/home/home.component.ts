@@ -7,6 +7,8 @@ import {map, startWith} from "rxjs/operators";
 import * as CryptoJS from "crypto-js";
 import {HttpClient} from "@angular/common/http";
 import * as io from 'socket.io-client';
+import {CookieService} from "ngx-cookie-service";
+import {EventBusService} from "../common/service/event-bus.service";
 
 @Component({
   selector: 'app-home',
@@ -44,12 +46,16 @@ export class HomeComponent implements OnInit {
   qrUrl= '';
   isStake = false;
   socket: SocketIOClient.Socket;
+  userInfo = {email: '', userId: ''};
 
-  constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient) {
+  constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
   }
 
   ngOnInit() {
+    this.http.get<any>('/api/get-user-info').subscribe(r => {
+      this.userInfo = r.result;
+    });
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterAllSearchList = this.allSearch.valueChanges.pipe(
       startWith(''),
@@ -77,7 +83,7 @@ export class HomeComponent implements OnInit {
     this.toggleFilter();
     this.isShowResult = true;
     this.selectedParkingStation = this.parkingStationControl.value;
-    const index = this.parkingStationList.indexOf(this.selectedParkingStation);
+    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
     const readyParkTime = new Date(this.arriveTime);
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
@@ -86,7 +92,9 @@ export class HomeComponent implements OnInit {
       stationAddress: this.selectedParkingStation,
       package: this.selectedPackage,
       startTime: new Date(this.arriveTime).toLocaleString(),
-      endTime: new Date(readyParkTime).toLocaleString()
+      endTime: new Date(readyParkTime).toLocaleString(),
+      email: this.userInfo.email,
+      userId: this.userInfo.userId
     };
     console.log(params);
   }

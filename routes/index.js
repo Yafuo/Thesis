@@ -12,7 +12,7 @@ var {io, app} = require('../app');
 var nodeMailer = require('nodemailer');
 
 /* GET home page. */
-router.get('/home', isLoggedIn, function(req, res, next) {
+router.get('/home', isLoggedIn, function (req, res, next) {
     ParkingSlot.find({})
         .then(parkingSlots => {
             if (!parkingSlots) {
@@ -23,7 +23,7 @@ router.get('/home', isLoggedIn, function(req, res, next) {
         })
         .catch(err => console.log(err));
 });
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
     if (req.cookies.token) {
         res.redirect('/home');
     } else {
@@ -32,7 +32,7 @@ router.get('/', function(req, res, next) {
 });
 router.post('/signup', function (req, res, next) {
     let passwordHash = 'not_hashed';
-    let h= hash(req.body.password).then(function(hash, err) {
+    let h = hash(req.body.password).then(function (hash, err) {
         passwordHash = hash;
         const user = new User({
             email: req.body.email,
@@ -86,12 +86,55 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.post('/get-available-slot', (req, res, next) => {
-    ParkingSlot.find({'slots.future.endTime': {$lt: req.body.startTime}})
+    // var startTime = new Date(req.body.startTime);
+    // var endTime = new Date(req.body.endTime);
+    // var cmp = startTime < endTime;
+    // const parkingSlot = new ParkingSlot({
+    //     _id: req.body.stationId,
+    //     stationAddress: req.body.stationAddress,
+    //     slots: [
+    //         {
+    //             _id: 1,
+    //             current: {
+    //
+    //             },
+    //             future: [
+    //                 {
+    //                     _id: req.body.userId,
+    //                     userName: req.body.email,
+    //                     status: 'booked',
+    //                     startTime: new Date(req.body.startTime),
+    //                     package: req.body.package.value,
+    //                     endTime: new Date(req.body.endTime)
+    //                 }
+    //             ]
+    //         }
+    //     ]
+    // });
+    // parkingSlot.save().then(r => {
+    //     if (r) {
+    //         res.json({result: r});
+    //         return;
+    //     }
+    //     res.json({result: 'BOOKING_FAILED'});
+    // }).catch(err => {
+    //     console.log(err);
+    //     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
+    // });
+    ParkingSlot.findOne({_id: req.body.stationId})
         .then(r => {
-            var arr = [];
-            r.forEach(i => {
-                arr.push(i.slots.future.userName);
-            });
+            if (!r) {
+                res.json({result: 'STATION_NOT_EXIST'});
+                return;
+            }
+            const slot = {
+                _id: req.body.userId,
+                userName: req.body.email,
+                status: 'booked',
+                startTime: new Date(req.body.startTime),
+                package: req.body.package,
+                endTime: new Date(req.body.endTime)
+            };
             ParkingSlot.find({'slots.future.startTime': {$gt: req.body.endTime}})
                 .then(r => {
                     r.forEach(i => {
@@ -110,7 +153,7 @@ router.post('/get-available-slot', (req, res, next) => {
                                     }
                                 })
                                 const data =
-                                ParkingSlot.save()
+                                    ParkingSlot.save()
                                 res.json({result: 'AVAILABLE'});
                                 return;
                             }
@@ -128,6 +171,24 @@ router.post('/get-available-slot', (req, res, next) => {
         .catch(err => {
             console.log(err);
             res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with LESS THAN)'});
+        });
+});
+router.get('/get-user-info', (req, res, next) => {
+    verify(req.cookies.token)
+        .then(decoded => {
+            User.findById(decoded).then(r => {
+                if (!r) {
+                    res.json({result: 'USER_DELETED'});
+                    return;
+                }
+                res.json({result: {email: r.email, userId: decoded._id}});
+            }).catch(err => {
+                console.log(err);
+            });
+        })
+        .catch(err => {
+            console.log(err.name);
+            res.status(500).json({result: 'VERIFY_SERVICE_FAILED'});
         });
 });
 router.post('/reset-password', (req, res, next) => {
@@ -168,7 +229,7 @@ router.post('/reset-for', (req, res, next) => {
     var encryptedEmail = req.body.encryptedEmail.replace(/ /g, "+");
     // Haven't test decrypt to encHEx yet, but encUtf8 work.
     var decryptedEmail = crypto.AES.decrypt(encryptedEmail, secretKey).toString(encUtf8);
-    console.log('Email:'+ decryptedEmail);
+    console.log('Email:' + decryptedEmail);
     let h = hash(req.body.password).then(function (hash, err) {
         const user = new User({
             email: decryptedEmail,
@@ -209,19 +270,19 @@ router.post('/login', (req, res, next) => {
     User.findOne({email}).then(result => {
         if (!result) {
             res.status(200).json({result: 'WRONG_EMAIL'});
-            return ;
+            return;
         }
         compare(req.body.password, result.password).then(r => {
             if (!r) {
                 res.status(200).json({result: 'WRONG_PASSWORD'});
                 return;
             }
-            sign({_id: result._id})
+            sign({_id: result._id}, {expiresIn: '120'})
                 .then(token => {
-                    res.cookie('token', token, {maxAge: 30*60*1000}).json({result: 'LOGIN_SUCCESS'});
-                    console.log('Token: '+ req.cookies.token); // WARNING: ConsoleLog cause this sign function to run catch block or catch(). Error below
-                                                    // UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
-                                                    // CAUSE: req.cookie.token => Wrong | FIX: req.cookies.token => Correct
+                    res.cookie('token', token, {maxAge: 10 * 60 * 1000}).json({result: 'LOGIN_SUCCESS', email: email});
+                    console.log('Token: ' + token); // WARNING: ConsoleLog cause this sign function to run catch block or catch(). Error below
+                    // UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+                    // CAUSE: req.cookie.token => Wrong | FIX: req.cookies.token => Correct
                 })
                 .catch(err => {
                     res.status(503).json({result: 'GENERATE_TOKEN_FAILED'});

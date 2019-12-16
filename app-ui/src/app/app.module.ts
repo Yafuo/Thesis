@@ -13,6 +13,7 @@ import {TopPanelComponent} from "./common/top-panel/top-panel.component";
 import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {HttpClient, HttpClientModule} from "@angular/common/http";
 import {TranslateHttpLoader} from "@ngx-translate/http-loader";
+import {EventBusService} from "./common/service/event-bus.service";
 
 @NgModule({
   declarations: [
@@ -33,7 +34,7 @@ import {TranslateHttpLoader} from "@ngx-translate/http-loader";
       }
     })
   ],
-  providers: [AuthGuard, AuthService, CookieService],
+  providers: [AuthGuard, AuthService, CookieService, EventBusService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
