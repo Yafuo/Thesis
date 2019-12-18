@@ -127,46 +127,58 @@ router.post('/get-available-slot', (req, res, next) => {
                 res.json({result: 'STATION_NOT_EXIST'});
                 return;
             }
-            const slot = {
+            const info = {
                 _id: req.body.userId,
                 userName: req.body.email,
                 status: 'booked',
                 startTime: new Date(req.body.startTime),
-                package: req.body.package,
+                package: req.body.package.value,
                 endTime: new Date(req.body.endTime)
             };
-            ParkingSlot.find({'slots.future.startTime': {$gt: req.body.endTime}})
-                .then(r => {
-                    r.forEach(i => {
-                        arr.push(i.slots.future.userName);
-                    });
-                    if (arr.length == 0) {
-                        res.json({result: 'AVAILABLE'});
-                        return;
-                    }
-                    ParkingSlot.find({'slots.future.userName': {$nin: arr}})
-                        .then(r => {
-                            if (r.length == 0) {
-                                ParkingSlot.find({'current.userName': ''}).then(r => {
-                                    if (r.length == 0) {
-                                        console.log('Current is empty');
-                                    }
-                                })
-                                const data =
-                                    ParkingSlot.save()
-                                res.json({result: 'AVAILABLE'});
-                                return;
-                            }
-                            res.json({result: 'NOT_AVAILABLE'});
-                        })
-                        .catch(err => {
-                            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with NOT IN)'});
-                        });
-                })
-                .catch(err => {
-                    console.log(err);
-                    res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with GREATER THAN)'});
-                });
+
+            r.slots[0].future.push(info);
+            r.save().then(r => {
+                if (!r) {
+                    res.json({result: 'BOOKING_FAILED'});
+                    return;
+                }
+                res.json({result: 'BOOKING_SUCCESSFUL'});
+            }).catch(err => {
+                console.log(err);
+                res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
+            });
+            // ParkingSlot.find({'slots.future.startTime': {$gt: req.body.endTime}})
+            //     .then(r => {
+            //         r.forEach(i => {
+            //             arr.push(i.slots.future.userName);
+            //         });
+            //         if (arr.length == 0) {
+            //             res.json({result: 'AVAILABLE'});
+            //             return;
+            //         }
+            //         ParkingSlot.find({'slots.future.userName': {$nin: arr}})
+            //             .then(r => {
+            //                 if (r.length == 0) {
+            //                     ParkingSlot.find({'current.userName': ''}).then(r => {
+            //                         if (r.length == 0) {
+            //                             console.log('Current is empty');
+            //                         }
+            //                     })
+            //                     const data =
+            //                         ParkingSlot.save()
+            //                     res.json({result: 'AVAILABLE'});
+            //                     return;
+            //                 }
+            //                 res.json({result: 'NOT_AVAILABLE'});
+            //             })
+            //             .catch(err => {
+            //                 res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with NOT IN)'});
+            //             });
+            //     })
+            //     .catch(err => {
+            //         console.log(err);
+            //         res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with GREATER THAN)'});
+            //     });
         })
         .catch(err => {
             console.log(err);

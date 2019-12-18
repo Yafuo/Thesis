@@ -97,6 +97,9 @@ export class HomeComponent implements OnInit {
       userId: this.userInfo.userId
     };
     console.log(params);
+    this.http.post('/api/get-available-slot', params).subscribe(r => {
+      console.log(r);
+    });
   }
 
   private _book() {
