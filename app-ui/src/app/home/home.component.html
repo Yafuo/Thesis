@@ -18,8 +18,9 @@
   <div class="col-4">
   </div>
   <div class="col-4">
-    <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
-    <span class="text-success">Available</span>
+    <fa-icon *ngIf="isAvailable" [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
+    <fa-icon *ngIf="!isAvailable" [icon]="faTimesCircle" [styles]="{'color': 'red'}"></fa-icon>
+    <span class="text-success">{{isAvailable ? 'Available' : 'Not Available'}}</span>
   </div>
   <owl-date-time pickerType="timer" #ultiTime></owl-date-time>
   <div class="col-4">

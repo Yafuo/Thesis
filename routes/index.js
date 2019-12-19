@@ -121,32 +121,58 @@ router.post('/get-available-slot', (req, res, next) => {
     //     console.log(err);
     //     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
     // });
-    ParkingSlot.findOne({_id: req.body.stationId})
+    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.endTime': {$lt: new Date(req.body.startTime)}}]} }, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}])
         .then(r => {
-            if (!r) {
-                res.json({result: 'STATION_NOT_EXIST'});
-                return;
+            var arr = [];
+            if (r.length != 0) {
+                r[0].future.forEach(i => {
+                    arr.push(i);
+                });
             }
-            const info = {
-                _id: req.body.userId,
-                userName: req.body.email,
-                status: 'booked',
-                startTime: new Date(req.body.startTime),
-                package: req.body.package.value,
-                endTime: new Date(req.body.endTime)
-            };
-
-            r.slots[0].future.push(info);
-            r.save().then(r => {
-                if (!r) {
-                    res.json({result: 'BOOKING_FAILED'});
-                    return;
-                }
-                res.json({result: 'BOOKING_SUCCESSFUL'});
-            }).catch(err => {
-                console.log(err);
-                res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
+            ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.startTime': {$gt: new Date(req.body.endTime)}}]}}, {$group: {_id: '$_id', future: {'$push': '$slots.future'}}}])
+                .then(r => {
+                    if (r.length != 0) {
+                        r.forEach(i => {
+                            arr.push(i.future);
+                        });
+                    }
+                    if (arr.length === 0) {
+                        res.json({result: 'SLOT_AVAILABLE'});
+                        return;
+                    }
+                    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future': {$nin: arr}}]}}, {$group: {_id: '$_id', future: {'$push': '$slots.future'}}}])
+                        .then(r => {
+                            if (r.length === 0) {
+                                res.json({result: 'SLOT_AVAILABLE'});
+                                return;
+                            }
+                            res.json({result: 'SLOT_NOT_AVAILABLE'});
+                        }).catch(err => {
+                        console.log(err);
+                        res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
+                    })
+                }).catch(err => {
+                res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
             });
+            // const info = {
+            //     _id: req.body.userId,
+            //     userName: req.body.email,
+            //     status: 'booked',
+            //     startTime: new Date(req.body.startTime),
+            //     package: req.body.package.value,
+            //     endTime: new Date(req.body.endTime)
+            // };
+            // r.slots[0].future.push(info);
+            // r.save().then(r => {
+            //     if (!r) {
+            //         res.json({result: 'BOOKING_FAILED'});
+            //         return;
+            //     }
+            //     res.json({result: 'BOOKING_SUCCESSFUL'});
+            // }).catch(err => {
+            //     console.log(err);
+            //     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
+            // });
             // ParkingSlot.find({'slots.future.startTime': {$gt: req.body.endTime}})
             //     .then(r => {
             //         r.forEach(i => {
@@ -182,7 +208,7 @@ router.post('/get-available-slot', (req, res, next) => {
         })
         .catch(err => {
             console.log(err);
-            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with LESS THAN)'});
+            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
         });
 });
 router.get('/get-user-info', (req, res, next) => {

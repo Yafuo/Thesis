@@ -1,5 +1,5 @@
 import {Component, OnInit, Renderer2, ViewEncapsulation} from '@angular/core';
-import {faChevronDown, faSearch, faCheckCircle} from "@fortawesome/free-solid-svg-icons";
+import {faChevronDown, faSearch, faCheckCircle, faTimesCircle} from "@fortawesome/free-solid-svg-icons";
 import {TranslateService} from "@ngx-translate/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
@@ -21,6 +21,7 @@ export class HomeComponent implements OnInit {
   faChevronDown = faChevronDown;
   faSearch = faSearch;
   faCheckCircle = faCheckCircle;
+  faTimesCircle = faTimesCircle;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
   parkingStationList = ['10 Ho Dac Di, P.Tay Thanh, Q.Tan Phu', '22/44 CMT8, P.2, Q.Tan Binh',
     '49a Phan Dang Luu, P.7, Q.Phu Nhuan', '96 Le Quang Dinh, P.14, Q.Binh Thanh'];
@@ -47,6 +48,7 @@ export class HomeComponent implements OnInit {
   isStake = false;
   socket: SocketIOClient.Socket;
   userInfo = {email: '', userId: ''};
+  isAvailable = false;
 
   constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
@@ -81,7 +83,6 @@ export class HomeComponent implements OnInit {
 
   filter() {
     this.toggleFilter();
-    this.isShowResult = true;
     this.selectedParkingStation = this.parkingStationControl.value;
     const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
@@ -97,8 +98,9 @@ export class HomeComponent implements OnInit {
       userId: this.userInfo.userId
     };
     console.log(params);
-    this.http.post('/api/get-available-slot', params).subscribe(r => {
-      console.log(r);
+    this.http.post<any>('/api/get-available-slot', params).subscribe(r => {
+      this.isShowResult = true;
+      this.isAvailable = r.result.indexOf('SLOT_NOT_AVAILABLE') < 0;
     });
   }
 
