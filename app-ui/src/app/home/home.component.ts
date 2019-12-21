@@ -90,8 +90,6 @@ export class HomeComponent implements OnInit {
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const params = {
       stationId: index,
-      stationAddress: this.selectedParkingStation,
-      package: this.selectedPackage,
       startTime: new Date(this.arriveTime).toLocaleString(),
       endTime: new Date(readyParkTime).toLocaleString(),
       email: this.userInfo.email,
@@ -118,7 +116,18 @@ export class HomeComponent implements OnInit {
       requestType: 'captureMoMoWallet',
       extraData: 'from uit.smartparking@gmail.com',
       signature: ''
-    }
+    };
+    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
+    const readyParkTime = new Date(this.arriveTime);
+    const params = {
+      stationId: index,
+      stationAddress: this.selectedParkingStation,
+      package: this.selectedPackage,
+      startTime: new Date(this.arriveTime).toLocaleString(),
+      endTime: new Date(readyParkTime).toLocaleString(),
+      email: this.userInfo.email,
+      userId: this.userInfo.userId
+    };
     var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
     var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
     var signature = CryptoJS.HmacSHA256(data, secretKey);
@@ -127,6 +136,9 @@ export class HomeComponent implements OnInit {
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
+      this.http.post<any>('/api/booking', params).subscribe(r => {
+        console.log(r);
+      });
     });
   }
 

@@ -86,130 +86,112 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.post('/get-available-slot', (req, res, next) => {
-    // var startTime = new Date(req.body.startTime);
-    // var endTime = new Date(req.body.endTime);
-    // var cmp = startTime < endTime;
-    // const parkingSlot = new ParkingSlot({
-    //     _id: req.body.stationId,
-    //     stationAddress: req.body.stationAddress,
-    //     slots: [
-    //         {
-    //             _id: 1,
-    //             current: {
-    //
-    //             },
-    //             future: [
-    //                 {
-    //                     _id: req.body.userId,
-    //                     userName: req.body.email,
-    //                     status: 'booked',
-    //                     startTime: new Date(req.body.startTime),
-    //                     package: req.body.package.value,
-    //                     endTime: new Date(req.body.endTime)
-    //                 }
-    //             ]
-    //         }
-    //     ]
-    // });
-    // parkingSlot.save().then(r => {
-    //     if (r) {
-    //         res.json({result: r});
-    //         return;
-    //     }
-    //     res.json({result: 'BOOKING_FAILED'});
-    // }).catch(err => {
-    //     console.log(err);
-    //     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
-    // });
-    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.endTime': {$lt: new Date(req.body.startTime)}}]} }, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}])
+    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}, {$sort: {_id: 1}}])
         .then(r => {
-            var arr = [];
-            if (r.length != 0) {
-                r[0].future.forEach(i => {
-                    arr.push(i);
-                });
-            }
-            ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.startTime': {$gt: new Date(req.body.endTime)}}]}}, {$group: {_id: '$_id', future: {'$push': '$slots.future'}}}])
-                .then(r => {
-                    if (r.length != 0) {
-                        r.forEach(i => {
-                            arr.push(i.future);
-                        });
-                    }
-                    if (arr.length === 0) {
-                        res.json({result: 'SLOT_AVAILABLE'});
-                        return;
-                    }
-                    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future': {$nin: arr}}]}}, {$group: {_id: '$_id', future: {'$push': '$slots.future'}}}])
-                        .then(r => {
-                            if (r.length === 0) {
-                                res.json({result: 'SLOT_AVAILABLE'});
-                                return;
-                            }
-                            res.json({result: 'SLOT_NOT_AVAILABLE'});
-                        }).catch(err => {
-                        console.log(err);
-                        res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
-                    })
-                }).catch(err => {
-                res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
-            });
-            // const info = {
-            //     _id: req.body.userId,
-            //     userName: req.body.email,
-            //     status: 'booked',
-            //     startTime: new Date(req.body.startTime),
-            //     package: req.body.package.value,
-            //     endTime: new Date(req.body.endTime)
-            // };
-            // r.slots[0].future.push(info);
-            // r.save().then(r => {
-            //     if (!r) {
-            //         res.json({result: 'BOOKING_FAILED'});
-            //         return;
-            //     }
-            //     res.json({result: 'BOOKING_SUCCESSFUL'});
-            // }).catch(err => {
-            //     console.log(err);
-            //     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (save)'});
-            // });
-            // ParkingSlot.find({'slots.future.startTime': {$gt: req.body.endTime}})
-            //     .then(r => {
-            //         r.forEach(i => {
-            //             arr.push(i.slots.future.userName);
-            //         });
-            //         if (arr.length == 0) {
-            //             res.json({result: 'AVAILABLE'});
-            //             return;
-            //         }
-            //         ParkingSlot.find({'slots.future.userName': {$nin: arr}})
-            //             .then(r => {
-            //                 if (r.length == 0) {
-            //                     ParkingSlot.find({'current.userName': ''}).then(r => {
-            //                         if (r.length == 0) {
-            //                             console.log('Current is empty');
-            //                         }
-            //                     })
-            //                     const data =
-            //                         ParkingSlot.save()
-            //                     res.json({result: 'AVAILABLE'});
-            //                     return;
-            //                 }
-            //                 res.json({result: 'NOT_AVAILABLE'});
-            //             })
-            //             .catch(err => {
-            //                 res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with NOT IN)'});
-            //             });
-            //     })
-            //     .catch(err => {
-            //         console.log(err);
-            //         res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (find with GREATER THAN)'});
+            // console.log(r);
+            // r.forEach(s => {
+            //     s.future.forEach(d => {
+            //         console.log(d.startTime.toLocaleString());
             //     });
-        })
-        .catch(err => {
+            // });
+            const x = req.body.startTime;
+            const y = req.body.endTime;
+            for (var i = 0; i < r.length; i++) {
+                var s = r[i].future;
+                for (var j = 0; j < s.length - 1; j++) {
+                    var u = s[j].endTime;
+                    var a = s[j+1].startTime;
+                    if (u < x && a > y) {
+                        //Book here
+                    }
+                }
+            }
+        }).catch(err => {
             console.log(err);
-            res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
-        });
+    })
+    // ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.endTime': {$lt: new Date(req.body.startTime)}}]} }, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}])
+    //     .then(r => {
+    //         var arr = [];
+    //         if (r.length != 0) {
+    //             r[0].future.forEach(i => {
+    //                 arr.push(i);
+    //             });
+    //         }
+    //         ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.startTime': {$gt: new Date(req.body.endTime)}}]}}, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}])
+    //             .then(r => {
+    //                 if (r.length != 0) {
+    //                     r.forEach(i => {
+    //                         arr.push(i.future);
+    //                     });
+    //                 }
+    //                 if (arr.length === 0) {
+    //                     res.json({result: 'SLOT_AVAILABLE'});
+    //                     return;
+    //                 }
+    //                 ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future': {$nin: arr}}]}}, {$group: {_id: '$_id', future: {'$push': '$slots.future'}}}])
+    //                     .then(r => {
+    //                         if (r.length === 0) {
+    //                             res.json({result: 'SLOT_AVAILABLE'});
+    //                             return;
+    //                         }
+    //                         res.json({result: 'SLOT_NOT_AVAILABLE'});
+    //                     }).catch(err => {
+    //                     console.log(err);
+    //                     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
+    //                 })
+    //             }).catch(err => {
+    //             res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
+    //         });
+    //     })
+    //     .catch(err => {
+    //         console.log(err);
+    //         res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
+    //     });
+});
+router.post('/booking', (req, res, next) => {
+    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}, {$sort: {_id: 1}}])
+        .then(r => {
+            var slot = [];
+            var x = 0;
+            console.log(r);
+            r.forEach(i => {
+                slot.push(i._id);
+            })
+            if (slot.length === 4) {
+
+            }
+            for (let i = 0; i < slot.length; i++) {
+                if (slot[i]+1 != slot[i+1]) {
+                    x = slot[i] + 1;
+                    break;
+                }
+            }
+            const d = {
+                _id: x,
+                future: [
+                    {
+                        _id: req.body.userId,
+                        userName: req.body.email,
+                        status: 'booked',
+                        startTime: new Date(req.body.startTime),
+                        package: req.body.package.value,
+                        endTime: new Date(req.body.endTime)
+                    }
+                ]
+            }
+            r.push(d);
+            ParkingSlot.updateOne({_id: req.body.stationId}, {$set: {slots: r}}).then(data => {
+                if (data) {
+                    res.json({result: 'BOOKING_SUCCESSFUL'});
+                    return;
+                }
+                res.json({result: 'BOOKING_FAILED'});
+            }).catch(err => {
+                console.log(err);
+            })
+        }).catch(err => {
+        console.log(err);
+    });
 });
 router.get('/get-user-info', (req, res, next) => {
     verify(req.cookies.token)
