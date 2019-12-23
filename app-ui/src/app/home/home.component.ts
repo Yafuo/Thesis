@@ -27,8 +27,8 @@ export class HomeComponent implements OnInit {
     '49a Phan Dang Luu, P.7, Q.Phu Nhuan', '96 Le Quang Dinh, P.14, Q.Binh Thanh'];
   userLocation = ['60/22 Dong Den, P.14, Q.Tan Binh', '199 Truong Dinh, P.5, Q.3',
     '70 Hoang Van Thu, P.10, Q.Phu Nhuan', '67 Ly Thuong Kiet, P.3, Q.Tan Binh'];
-  selectedParkingStation = 'not_choose';
-  selectedUserLocation = 'not_choose';
+  selectedParkingStation = '';
+  selectedUserLocation = '';
   userLocationControl = new FormControl();
   parkingStationControl = new FormControl();
   allSearch = new FormControl();

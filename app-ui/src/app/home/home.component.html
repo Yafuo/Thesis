@@ -95,7 +95,7 @@
   <div class="abc row">
     <div class="col-6"></div>
     <div class="col-6 text-center">
-      <button (click)="filter()" class="btn btn-sm btn-warning">{{'Done'}}</button>
+      <button [disabled]="!parkingStationControl.value || !userLocationControl.value || !selectedPackage.name" (click)="filter()" class="btn btn-sm btn-warning">{{'Done'}}</button>
     </div>
   </div>
 </div>

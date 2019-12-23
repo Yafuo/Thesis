@@ -86,12 +86,7 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.post('/get-available-slot', (req, res, next) => {
-    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$sort: {'slots.future.startTime': 1}}, {
-        $group: {
-            _id: '$slots._id',
-            future: {'$push': '$slots.future'}
-        }
-    }, {$sort: {_id: 1}}])
+    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$sort: {'slots.future.startTime': 1}}, {$group: {_id: '$slots._id',futures: {'$push': '$slots.future'}}}, {$project: {_id: '$_id', future: '$futures' ,total: {$size: '$futures'}}}, {$sort: {total: 1}}])
         .then(r => {
             // console.log(r);
             // r.forEach(s => {
@@ -126,7 +121,7 @@ router.post('/get-available-slot', (req, res, next) => {
             res.json({result: 'SLOT_NOT_AVAILABLE'});
         }).catch(err => {
         console.log(err);
-    })
+    });
     // ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.endTime': {$lt: new Date(req.body.startTime)}}]} }, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}])
     //     .then(r => {
     //         var arr = [];
@@ -175,12 +170,22 @@ router.post('/booking', (req, res, next) => {
     }, {$sort: {_id: 1}}])
         .then(r => {
             var slot = [];
+            var sortBySizeArr = [];
             var flag = false;
             var index = 0;
             console.log(r);
             r.forEach(i => {
                 slot.push(i._id);
             });
+            for (var i = 0; i < r.length - 1; i++) {
+                for (var j = i + 1; j < r.length; j++) {
+                    if (r[i].future.length > r[j].future.length) {
+                        var temp = r[i];
+                        r[i] = r[j];
+                        r[j] = temp;
+                    }
+                }
+            }
             if (slot.length === 4) {
                 const x = new Date(req.body.startTime);
                 const y = new Date(req.body.endTime);
@@ -233,37 +238,37 @@ router.post('/booking', (req, res, next) => {
                         console.log(err);
                     });
                 }
-                return;
-            }
-            for (let i = 0; i < slot.length; i++) {
-                if (slot[i] + 1 != slot[i + 1]) {
-                    index = slot[i] + 1;
-                    break;
-                }
-            }
-            const d = {
-                _id: index,
-                future: [
-                    {
-                        _id: req.body.userId,
-                        userName: req.body.email,
-                        status: 'booked',
-                        startTime: new Date(req.body.startTime),
-                        package: req.body.package.value,
-                        endTime: new Date(req.body.endTime)
+            } else {
+                for (let i = 0; i < slot.length; i++) {
+                    if (slot[i] + 1 != slot[i + 1]) {
+                        index = slot[i] + 1;
+                        break;
                     }
-                ]
-            }
-            r.push(d);
-            ParkingSlot.updateOne({_id: req.body.stationId}, {$set: {slots: r}}).then(data => {
-                if (data) {
-                    res.json({result: 'BOOKING_SUCCESSFUL'});
-                    return;
                 }
-                res.json({result: 'BOOKING_FAILED'});
-            }).catch(err => {
-                console.log(err);
-            });
+                const d = {
+                    _id: index,
+                    future: [
+                        {
+                            _id: req.body.userId,
+                            userName: req.body.email,
+                            status: 'booked',
+                            startTime: new Date(req.body.startTime),
+                            package: req.body.package.value,
+                            endTime: new Date(req.body.endTime)
+                        }
+                    ]
+                }
+                r.push(d);
+                ParkingSlot.updateOne({_id: req.body.stationId}, {$set: {slots: r}}).then(data => {
+                    if (data) {
+                        res.json({result: 'BOOKING_SUCCESSFUL'});
+                        return;
+                    }
+                    res.json({result: 'BOOKING_FAILED'});
+                }).catch(err => {
+                    console.log(err);
+                });
+            }
         }).catch(err => {
         console.log(err);
     });
