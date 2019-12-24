@@ -74,8 +74,9 @@ export class HomeComponent implements OnInit {
   }
 
   private _alwaysListenToChange() {
-    this.socket = io.connect('http://7b5b64a5.ngrok.io');
+    this.socket = io.connect('http://89d031d5.ngrok.io');
     this.socket.on('news', (news: any) => {
+      console.log(news);
       this.qrUrl = '';
       this.isStake = true;
     });
@@ -90,8 +91,8 @@ export class HomeComponent implements OnInit {
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const params = {
       stationId: index,
-      startTime: new Date(this.arriveTime).toLocaleString(),
-      endTime: new Date(readyParkTime).toLocaleString(),
+      startTime: new Date(this.arriveTime).toLocaleString('en-US'),
+      endTime: new Date(readyParkTime).toLocaleString('en-US'),
       email: this.userInfo.email,
       userId: this.userInfo.userId
     };
@@ -104,7 +105,7 @@ export class HomeComponent implements OnInit {
 
   private _book() {
     let date = Date.now().toString(10);
-    const startTime = new Date(this.arriveTime).toLocaleString();
+    const startTime = new Date(this.arriveTime).toLocaleString('en-US');
     let readyParkTime = new Date(this.arriveTime);
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
@@ -115,10 +116,10 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://7b5b64a5.ngrok.io',
-      notifyUrl: 'http://7b5b64a5.ngrok.io/api/booking',
+      returnUrl: 'http://89d031d5.ngrok.io',
+      notifyUrl: 'http://89d031d5.ngrok.io/api/booking',
       requestType: 'captureMoMoWallet',
-      extraData: `${index}-${this.userInfo.userId}-${this.userInfo.email}-${startTime}-${this.selectedPackage.value}-${new Date(readyParkTime).toLocaleString()}`,
+      extraData: `${index}-${this.userInfo.userId}-${this.userInfo.email}-${startTime}-${this.selectedPackage.value}-${new Date(readyParkTime).toLocaleString('en-US')}`,
       signature: ''
     };
     var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;

@@ -217,7 +217,7 @@ router.post('/booking', (req, res, next) => {
                                 userName: info[2],
                                 status: 'booked',
                                 startTime: new Date(info[3]),
-                                package: info[4],
+                                package: Number(info[4]),
                                 endTime: new Date(info[5])
                             };
                             s.push(d);
@@ -227,10 +227,18 @@ router.post('/booking', (req, res, next) => {
                     }
                 }
                 if (flag) {
-                    ParkingSlot.updateOne({_id: new Date(info[0])}, {$set: {slots: r}}).then(data => {
+                    ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
                         if (data) {
-                            res.json({result: 'BOOKING_SUCCESSFUL'});
-                            req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
+                            User.updateOne({_id: info[1]}, {$set: {stake: true}}).then(data => {
+                                if (data) {
+                                    res.json({result: 'BOOKING_SUCCESSFUL'});
+                                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
+                                    return;
+                                }
+                                res.json({result: 'UPDATE_USER_STAKE_STATE_FAILED'});
+                            }).catch(err => {
+                                console.log(err);
+                            });
                             return;
                         }
                         req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
@@ -255,8 +263,8 @@ router.post('/booking', (req, res, next) => {
                             userName: info[2],
                             status: 'booked',
                             startTime: new Date(info[3]),
-                            package: info[4],
-                            endTime: info[5]
+                            package: Number(info[4]),
+                            endTime: new Date(info[5])
                         }
                     ]
                 }
