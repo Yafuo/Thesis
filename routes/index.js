@@ -162,7 +162,8 @@ router.post('/get-available-slot', (req, res, next) => {
     //     });
 });
 router.post('/booking', (req, res, next) => {
-    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$sort: {'slots.future.startTime': 1}}, {
+    let info = req.body.extraData.split('-');
+    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: Number(info[0])}}, {$sort: {'slots.future.startTime': 1}}, {
         $group: {
             _id: '$slots._id',
             future: {'$push': '$slots.future'}
@@ -170,7 +171,6 @@ router.post('/booking', (req, res, next) => {
     }, {$sort: {_id: 1}}])
         .then(r => {
             var slot = [];
-            var sortBySizeArr = [];
             var flag = false;
             var index = 0;
             console.log(r);
@@ -187,20 +187,20 @@ router.post('/booking', (req, res, next) => {
                 }
             }
             if (slot.length === 4) {
-                const x = new Date(req.body.startTime);
-                const y = new Date(req.body.endTime);
+                const x = new Date(info[3]);
+                const y = new Date(info[5]);
                 for (var i = 0; i < r.length; i++) {
                     if (flag) break;
                     var s = r[i].future;
                     if (s.length === 1) {
                         if (y < s[0].startTime || x > s[0].endTime) {
                             const d = {
-                                _id: req.body.userId,
-                                userName: req.body.email,
+                                _id: info[1],
+                                userName: info[2],
                                 status: 'booked',
-                                startTime: new Date(req.body.startTime),
-                                package: req.body.package.value,
-                                endTime: new Date(req.body.endTime)
+                                startTime: new Date(info[3]),
+                                package: info[4],
+                                endTime: new Date(info[5])
                             };
                             s.push(d);
                             flag = true;
@@ -213,12 +213,12 @@ router.post('/booking', (req, res, next) => {
                         if ((end < x && y < start) || (y < s[0].startTime) || (x > s[s.length - 1].endTime)) {
                             //Book here
                             const d = {
-                                _id: req.body.userId,
-                                userName: req.body.email,
+                                _id: info[1],
+                                userName: info[2],
                                 status: 'booked',
-                                startTime: new Date(req.body.startTime),
-                                package: req.body.package.value,
-                                endTime: new Date(req.body.endTime)
+                                startTime: new Date(info[3]),
+                                package: info[4],
+                                endTime: new Date(info[5])
                             };
                             s.push(d);
                             flag = true;
@@ -227,11 +227,13 @@ router.post('/booking', (req, res, next) => {
                     }
                 }
                 if (flag) {
-                    ParkingSlot.updateOne({_id: req.body.stationId}, {$set: {slots: r}}).then(data => {
+                    ParkingSlot.updateOne({_id: new Date(info[0])}, {$set: {slots: r}}).then(data => {
                         if (data) {
                             res.json({result: 'BOOKING_SUCCESSFUL'});
+                            req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
                             return;
                         }
+                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
                         res.json({result: 'BOOKING_FAILED'});
                         return;
                     }).catch(err => {
@@ -249,21 +251,23 @@ router.post('/booking', (req, res, next) => {
                     _id: index,
                     future: [
                         {
-                            _id: req.body.userId,
-                            userName: req.body.email,
+                            _id: info[1],
+                            userName: info[2],
                             status: 'booked',
-                            startTime: new Date(req.body.startTime),
-                            package: req.body.package.value,
-                            endTime: new Date(req.body.endTime)
+                            startTime: new Date(info[3]),
+                            package: info[4],
+                            endTime: info[5]
                         }
                     ]
                 }
                 r.push(d);
-                ParkingSlot.updateOne({_id: req.body.stationId}, {$set: {slots: r}}).then(data => {
+                ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
                     if (data) {
                         res.json({result: 'BOOKING_SUCCESSFUL'});
+                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
                         return;
                     }
+                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
                     res.json({result: 'BOOKING_FAILED'});
                 }).catch(err => {
                     console.log(err);

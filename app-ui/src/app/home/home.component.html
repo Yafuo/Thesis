@@ -24,7 +24,7 @@
   </div>
   <owl-date-time pickerType="timer" #ultiTime></owl-date-time>
   <div class="col-4">
-    <button (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
+    <button [disabled]="qrUrl" (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
   </div>
 </div>
 <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto">
@@ -102,5 +102,8 @@
 <div *ngIf="isStake" class="wrap-feature-btn row">
   <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
     <button class="btn btn-sm btn-primary w-100">{{'Park'}}</button>
+  </div>
+  <div class="col-12 col-md-6 text-center">
+    <button class="btn btn-sm btn-primary w-100">{{'Extend'}}</button>
   </div>
 </div>

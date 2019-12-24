@@ -74,7 +74,7 @@ export class HomeComponent implements OnInit {
   }
 
   private _alwaysListenToChange() {
-    this.socket = io.connect('http://localhost:3000');
+    this.socket = io.connect('http://7b5b64a5.ngrok.io');
     this.socket.on('news', (news: any) => {
       this.qrUrl = '';
       this.isStake = true;
@@ -104,6 +104,10 @@ export class HomeComponent implements OnInit {
 
   private _book() {
     let date = Date.now().toString(10);
+    const startTime = new Date(this.arriveTime).toLocaleString();
+    let readyParkTime = new Date(this.arriveTime);
+    readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
+    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
     const d = {
       partnerCode: 'MOMO',
       accessKey: 'F8BBA842ECF85',
@@ -111,22 +115,11 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://24ebfd58.ngrok.io',
-      notifyUrl: 'http://24ebfd58.ngrok.io/api/receive-notify',
+      returnUrl: 'http://7b5b64a5.ngrok.io',
+      notifyUrl: 'http://7b5b64a5.ngrok.io/api/booking',
       requestType: 'captureMoMoWallet',
-      extraData: 'from uit.smartparking@gmail.com',
+      extraData: `${index}-${this.userInfo.userId}-${this.userInfo.email}-${startTime}-${this.selectedPackage.value}-${new Date(readyParkTime).toLocaleString()}`,
       signature: ''
-    };
-    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
-    const readyParkTime = new Date(this.arriveTime);
-    const params = {
-      stationId: index,
-      stationAddress: this.selectedParkingStation,
-      package: this.selectedPackage,
-      startTime: new Date(this.arriveTime).toLocaleString(),
-      endTime: new Date(readyParkTime).toLocaleString(),
-      email: this.userInfo.email,
-      userId: this.userInfo.userId
     };
     var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
     var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
@@ -136,9 +129,6 @@ export class HomeComponent implements OnInit {
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
-      this.http.post<any>('/api/booking', params).subscribe(r => {
-        console.log(r);
-      });
     });
   }
 
