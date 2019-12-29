@@ -215,13 +215,29 @@ router.post('/canceling', (req, res, next) => {
             res.json({result: 'CANCELLING_FAILED'});
             return;
         }
-        r.slots.forEach(s => {
+        for (var i = 0; i < r.slots.length; i++) {
+            var s = r.slots[i];
             if (s._id === slotId) {
-                s.future.filter(f => f.userName != userName);
-                res.json({result: 'CANCELLING_SUCCESSFUL'});
+                s.future = s.future.filter(f => f.userName != userName);
+                break;
+            }
+        }
+        ParkingSlot.updateOne({_id: stationId}, {$set: {slots: r.slots}}).then(r => {
+            if (!r) {
+                res.json({result: 'CANCELLING_FAILED'});
                 return;
             }
-        });
+            User.updateOne({email: userName}, {$set: {status: 'none'}}).then(r => {
+                if (!r) {
+                    res.json({result: 'CANCELLING_FAILED'});
+                    return;
+                }
+                req.app.io.emit('user-status', {status: 'none'});
+                res.json({result: 'CANCELLING_SUCCESSFUL'});
+            });
+        }).catch(err => {
+            console.log(err);
+        })
     }).catch(err => {
         console.log(err);
     });
@@ -366,8 +382,8 @@ router.get('/get-user-info', (req, res, next) => {
                 }
                 ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {'slots.future._id': decoded._id}}, {$project: {stationId: '$_id', slotId: '$slots._id', endTime: '$slots.future.endTime'}}])
                     .then(rr => {
-                        if (!rr) {
-                            res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: 0, slotId: rr[0].slotId, endTime: ''}});
+                        if (rr.length === 0) {
+                            res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: 0, slotId: 0, endTime: ''}});
                             return;
                         }
                         res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: rr[0].stationId, slotId: rr[0].slotId, endTime: rr[0].endTime}});

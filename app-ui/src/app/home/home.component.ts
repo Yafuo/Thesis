@@ -84,17 +84,32 @@ export class HomeComponent implements OnInit {
   }
 
   private _alwaysListenToChange() {
-    this.socket = io.connect('http://c471c9f4.ngrok.io');
+    this.socket = io.connect('http://c23736ea.ngrok.io');
     this.socket.on('news', (news: any) => {
       console.log(news);
       this.qrUrl = '';
       this.newsObj = news;
       this.isStake = true;
     });
+    this.socket.on('user-status', (json: any) => {
+      console.log(json);
+      this.userInfo.status = json.status;
+    });
   }
 
   toggleExtend() {
     this.extend = !this.extend;
+  }
+
+  private _cancel() {
+    const params = {
+      stationId: this.userInfo.stationId,
+      slotId: this.userInfo.slotId,
+      userName: this.userInfo.email
+    }
+    this.http.post('/api/canceling', params).subscribe(r => {
+      console.log(r);
+    });
   }
 
   private _extend() {
@@ -114,8 +129,8 @@ export class HomeComponent implements OnInit {
       amount: (Number(this.selectedPackage.cost) * 2).toString(10),
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://c471c9f4.ngrok.io',
-      notifyUrl: 'http://c471c9f4.ngrok.io/api/extending',
+      returnUrl: 'http://c23736ea.ngrok.io',
+      notifyUrl: 'http://c23736ea.ngrok.io/api/extending',
       requestType: 'captureMoMoWallet',
       extraData: `${params.stationId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
       signature: ''
