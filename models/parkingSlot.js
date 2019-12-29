@@ -6,14 +6,6 @@ const parkingSlotSchema = new Schema({
         slots: [
             {
                 _id: Number,
-                current: {
-                    _id: String,
-                    userName: String,
-                    status: String,
-                    startTime: Date,
-                    package: Number,
-                    endTime: Date
-                },
                 future: [
                     {
                         _id: String,

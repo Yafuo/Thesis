@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const userSchema = mongoose.Schema({
     email: String,
     password: String,
-    isLinkedToMomo: Boolean
+    status: {type: String, default: 'none'}
 });
 
 module.exports = mongoose.model('User', userSchema);

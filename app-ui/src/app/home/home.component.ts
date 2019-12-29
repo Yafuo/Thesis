@@ -36,7 +36,11 @@ export class HomeComponent implements OnInit {
   filterUserLocationList: Observable<string[]>;
   filterparkingStationList: Observable<string[]>;
   isFilterClicked = false;
-  packageList = [{name: '1 hour', cost: '5000', value: 1}, {name: '3 hour', cost: '20000', value: 3}, {name: '1 day', cost: '50000', value: 24}];
+  packageList = [{name: '1 hour', cost: '5000', value: 1}, {name: '3 hour', cost: '20000', value: 3}, {
+    name: '1 day',
+    cost: '50000',
+    value: 24
+  }];
   selectedPackage = {name: '', cost: '', value: 0};
   height = '';
   state = 'down';
@@ -44,11 +48,14 @@ export class HomeComponent implements OnInit {
   leaveHomeTime = new Date(Date.now());
   isShowResult = false;
   isCurrentLocationChecked = false;
-  qrUrl= '';
+  qrUrl = '';
   isStake = false;
+  newsObj = {billMsg: '', billCode: ''};
   socket: SocketIOClient.Socket;
-  userInfo = {email: '', userId: ''};
+  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, endTime: new Date()};
   isAvailable = false;
+  extend = false;
+  endTime = '';
 
   constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
@@ -57,6 +64,9 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
       this.userInfo = r.result;
+      console.log(this.userInfo);
+      this.selectedParkingStation = this.userInfo.status != 'none' ? this.parkingStationList[this.userInfo.stationId-1] : '';
+      this.endTime = this.userInfo.status != 'none' ? new Date(this.userInfo.endTime).toLocaleString('en-US') : '';
     });
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterAllSearchList = this.allSearch.valueChanges.pipe(
@@ -74,12 +84,54 @@ export class HomeComponent implements OnInit {
   }
 
   private _alwaysListenToChange() {
-    this.socket = io.connect('http://89d031d5.ngrok.io');
+    this.socket = io.connect('http://c471c9f4.ngrok.io');
     this.socket.on('news', (news: any) => {
       console.log(news);
       this.qrUrl = '';
+      this.newsObj = news;
       this.isStake = true;
     });
+  }
+
+  toggleExtend() {
+    this.extend = !this.extend;
+  }
+
+  private _extend() {
+    this.extend = false;
+    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
+    var date = new Date();
+    const params = {
+      stationId: index,
+      userName: this.userInfo.email,
+      package: this.selectedPackage.value,
+      endTime: this.endTime
+    };
+    const d = {
+      partnerCode: 'MOMO',
+      accessKey: 'F8BBA842ECF85',
+      requestId: 'UIT' + date,
+      amount: (Number(this.selectedPackage.cost) * 2).toString(10),
+      orderId: 'UIT' + date,
+      orderInfo: this.selectedPackage.name,
+      returnUrl: 'http://c471c9f4.ngrok.io',
+      notifyUrl: 'http://c471c9f4.ngrok.io/api/extending',
+      requestType: 'captureMoMoWallet',
+      extraData: `${params.stationId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
+      signature: ''
+    };
+    var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
+    var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
+    var signature = CryptoJS.HmacSHA256(data, secretKey);
+    d.signature = signature.toString();
+    this.http.post<any>('https://test-payment.momo.vn/gw_payment/transactionProcessor', JSON.stringify(d)).subscribe(r => {
+      console.log(r);
+      const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
+      this.qrUrl = prefix + r.qrCodeUrl.slice(42);
+    });
+    // this.http.post('/api/extending', params).subscribe(r => {
+    //
+    // });
   }
 
   filter() {
@@ -116,8 +168,8 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://89d031d5.ngrok.io',
-      notifyUrl: 'http://89d031d5.ngrok.io/api/booking',
+      returnUrl: 'http://3b24fbce.ngrok.io',
+      notifyUrl: 'http://3b24fbce.ngrok.io/api/booking',
       requestType: 'captureMoMoWallet',
       extraData: `${index}-${this.userInfo.userId}-${this.userInfo.email}-${startTime}-${this.selectedPackage.value}-${new Date(readyParkTime).toLocaleString('en-US')}`,
       signature: ''
@@ -139,9 +191,13 @@ export class HomeComponent implements OnInit {
 
   private _filter(value: string, opt: number): string[] {
     const filterValue = value.toLowerCase();
-    if (opt === 1) { return this.districtList.filter(d => d.toLowerCase().indexOf(filterValue) > -1); }
-    else if (opt === 2) { return this.userLocation.filter(d => d.toLowerCase().indexOf(filterValue) > -1); }
-    else { return this.parkingStationList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);}
+    if (opt === 1) {
+      return this.districtList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
+    } else if (opt === 2) {
+      return this.userLocation.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
+    } else {
+      return this.parkingStationList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
+    }
   }
 
   private _getTranslation(value: string): string {

@@ -161,6 +161,71 @@ router.post('/get-available-slot', (req, res, next) => {
     //         res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
     //     });
 });
+router.post('/extending', (req, res, next) => {
+    const extraData = req.body.extraData.split('-');
+    var flag = false;
+    ParkingSlot.findOne({_id: Number(extraData[0])})
+        .then(r => {
+            var info = r.slots;
+            for (var i = 0; i < info.length; i++) {
+                if (flag) break;
+                var futures = info[i].future;
+                for (var j = 0; j < futures.length; j++) {
+                    const email = futures[j].userName;
+                    if (extraData[1] === email) {
+                        var newEndTime = new Date(extraData[3]);
+                        newEndTime.setHours(new Date(extraData[3]).getHours() + Number(extraData[2]));
+                        if (futures.length === 1) {
+                            futures[j].endTime = newEndTime;
+                            futures[j].package += Number(extraData[2]);
+                            flag = true;
+                        } else {
+                            if (newEndTime < futures[j+1].endTime) {
+                                futures[j].endTime = newEndTime;
+                                futures[j].package += Number(extraData[2]);
+                                flag = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (flag) {
+                ParkingSlot.updateOne({_id: Number(extraData[0])}, {$set: {slots: info}})
+                    .then(r => {
+                        if (r) {
+                            res.json({result: 'EXTEND_SUCCESSFUL'});
+                            req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
+                            return;
+                        }
+                        res.json({result: 'EXTEND_FAILED'});
+                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
+                    }).catch(err => {
+                    console.log(err);
+                });
+            }
+        }).catch(err => {
+            console.log(err);
+    });
+});
+router.post('/canceling', (req, res, next) => {
+    const {stationId, slotId, userName} = req.body;
+    ParkingSlot.findOne({_id: stationId}).then(r => {
+        if (!r) {
+            res.json({result: 'CANCELLING_FAILED'});
+            return;
+        }
+        r.slots.forEach(s => {
+            if (s._id === slotId) {
+                s.future.filter(f => f.userName != userName);
+                res.json({result: 'CANCELLING_SUCCESSFUL'});
+                return;
+            }
+        });
+    }).catch(err => {
+        console.log(err);
+    });
+});
 router.post('/booking', (req, res, next) => {
     let info = req.body.extraData.split('-');
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: Number(info[0])}}, {$sort: {'slots.future.startTime': 1}}, {
@@ -229,10 +294,10 @@ router.post('/booking', (req, res, next) => {
                 if (flag) {
                     ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
                         if (data) {
-                            User.updateOne({_id: info[1]}, {$set: {stake: true}}).then(data => {
+                            User.updateOne({_id: info[1]}, {$set: {status: 'staked'}}).then(data => {
                                 if (data) {
                                     res.json({result: 'BOOKING_SUCCESSFUL'});
-                                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
+                                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
                                     return;
                                 }
                                 res.json({result: 'UPDATE_USER_STAKE_STATE_FAILED'});
@@ -241,9 +306,8 @@ router.post('/booking', (req, res, next) => {
                             });
                             return;
                         }
-                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
+                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
                         res.json({result: 'BOOKING_FAILED'});
-                        return;
                     }).catch(err => {
                         console.log(err);
                     });
@@ -271,11 +335,18 @@ router.post('/booking', (req, res, next) => {
                 r.push(d);
                 ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
                     if (data) {
-                        res.json({result: 'BOOKING_SUCCESSFUL'});
-                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
+                        User.updateOne({_id: Number(info[1])}, {$set: {status: 'staked'}}).then(data => {
+                            if (data) {
+                                res.json({result: 'BOOKING_SUCCESSFUL'});
+                                req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                return;
+                            }
+                        }).catch(err => {
+                            console.log(err);
+                        });
                         return;
                     }
-                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode});
+                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
                     res.json({result: 'BOOKING_FAILED'});
                 }).catch(err => {
                     console.log(err);
@@ -293,7 +364,14 @@ router.get('/get-user-info', (req, res, next) => {
                     res.json({result: 'USER_DELETED'});
                     return;
                 }
-                res.json({result: {email: r.email, userId: decoded._id}});
+                ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {'slots.future._id': decoded._id}}, {$project: {stationId: '$_id', slotId: '$slots._id', endTime: '$slots.future.endTime'}}])
+                    .then(rr => {
+                        if (!rr) {
+                            res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: 0, slotId: rr[0].slotId, endTime: ''}});
+                            return;
+                        }
+                        res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: rr[0].stationId, slotId: rr[0].slotId, endTime: rr[0].endTime}});
+                    });
             }).catch(err => {
                 console.log(err);
             });

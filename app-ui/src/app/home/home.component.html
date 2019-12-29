@@ -24,7 +24,7 @@
   </div>
   <owl-date-time pickerType="timer" #ultiTime></owl-date-time>
   <div class="col-4">
-    <button [disabled]="qrUrl" (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
+    <button [disabled]="qrUrl || userInfo.status != 'none' || newsObj.billMsg === 'Success'" (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
   </div>
 </div>
 <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto">
@@ -99,11 +99,35 @@
     </div>
   </div>
 </div>
-<div *ngIf="isStake" class="wrap-feature-btn row">
+<div *ngIf="isStake || userInfo.status === 'staked'" class="wrap-feature-btn row">
   <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
-    <button class="btn btn-sm btn-primary w-100">{{'Park'}}</button>
+    <button [disabled]="userInfo.status === 'paid'" class="btn btn-sm btn-primary w-100">{{'Park'}}</button>
   </div>
-  <div class="col-12 col-md-6 text-center">
-    <button class="btn btn-sm btn-primary w-100">{{'Extend'}}</button>
+  <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
+    <button class="btn btn-sm btn-primary w-100" (click)="toggleExtend()">{{'Extend'}}</button>
+  </div>
+  <div class="package-choice hide-this-{{!extend}}">
+    <mat-accordion [hideToggle]="true">
+      <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
+        <mat-expansion-panel-header style="font-size: 14px" class="row">
+          <mat-panel-title class="col-2 col-sm-2 p-0">
+            <button class="btn btn-sm btn-primary btn-extend" (click)="_extend()">{{'Done'}}</button>
+          </mat-panel-title>
+          <mat-panel-description class="col-8 col-sm-8 p-0 mr-0">
+            <span>Please click Done when finish</span>
+          </mat-panel-description>
+          <mat-panel-description class="col-2 col-sm-2 p-0">
+            <div class=" indicator{{'-'+ state}}">
+              <mat-icon>keyboard_arrow_down</mat-icon>
+            </div>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="row">
+          <ul class="col-12 col-sm-6 pr-0 list-group">
+            <li class="list-group-item" (click)="onSelect(p)" *ngFor="let p of packageList">{{p.name}}</li>
+          </ul>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
   </div>
 </div>
