@@ -1,5 +1,5 @@
 import {Component, OnInit, Renderer2, ViewEncapsulation} from '@angular/core';
-import {faChevronDown, faSearch, faCheckCircle, faTimesCircle} from "@fortawesome/free-solid-svg-icons";
+import {faCheckCircle, faTimesCircle,faUserPlus, faLanguage, faChevronLeft, faBars, faPowerOff} from "@fortawesome/free-solid-svg-icons";
 import {TranslateService} from "@ngx-translate/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
@@ -9,6 +9,7 @@ import {HttpClient} from "@angular/common/http";
 import * as io from 'socket.io-client';
 import {CookieService} from "ngx-cookie-service";
 import {EventBusService} from "../common/service/event-bus.service";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-home',
@@ -18,10 +19,13 @@ import {EventBusService} from "../common/service/event-bus.service";
 })
 export class HomeComponent implements OnInit {
 
-  faChevronDown = faChevronDown;
-  faSearch = faSearch;
+  faBars = faBars;
+  faPowerOff = faPowerOff;
+  faChevronLeft =faChevronLeft;
   faCheckCircle = faCheckCircle;
   faTimesCircle = faTimesCircle;
+  faUserPlus = faUserPlus;
+  faLanguage = faLanguage;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
   parkingStationList = ['10 Ho Dac Di, P.Tay Thanh, Q.Tan Phu', '22/44 CMT8, P.2, Q.Tan Binh',
     '49a Phan Dang Luu, P.7, Q.Phu Nhuan', '96 Le Quang Dinh, P.14, Q.Binh Thanh'];
@@ -55,8 +59,12 @@ export class HomeComponent implements OnInit {
   isAvailable = false;
   extend = false;
   endTime = '';
+  selectedLang = '';
+  langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
+  list = [{opt: 'Log out', details: []}, {opt: 'Language', details: this.langList}];
+  navBarList = [this.faPowerOff, this.faLanguage];
 
-  constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
+  constructor(private translate: TranslateService, private router: Router, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
     translate.setDefaultLang('vn');
   }
@@ -82,6 +90,12 @@ export class HomeComponent implements OnInit {
     this.translate.setDefaultLang(lang);
   }
 
+  navTo(i: number) {
+    if (i + 1 === this.list.length) return;
+    this.cookieService.delete('token', '/', 'localhost');
+    this.router.navigate(['/']);
+  }
+
   private _getUserInfo() {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
       this.userInfo = r.result;
@@ -93,7 +107,7 @@ export class HomeComponent implements OnInit {
   }
 
   private _alwaysListenToChange() {
-    this.socket = io.connect('http://c367ed8e.ngrok.io');
+    this.socket = io.connect('http://b7345aba.ngrok.io');
     this.socket.on('news', (news: any) => {
       console.log(news);
       this.qrUrl = '';
@@ -143,8 +157,8 @@ export class HomeComponent implements OnInit {
       amount: (Number(this.selectedPackage.cost) * 2).toString(10),
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://c367ed8e.ngrok.io',
-      notifyUrl: 'http://c367ed8e.ngrok.io/api/extending',
+      returnUrl: 'http://b7345aba.ngrok.io',
+      notifyUrl: 'http://b7345aba.ngrok.io/api/extending',
       requestType: 'captureMoMoWallet',
       extraData: `${params.stationId}-${params.slotId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
       signature: ''
@@ -197,8 +211,8 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://c367ed8e.ngrok.io',
-      notifyUrl: 'http://c367ed8e.ngrok.io/api/booking',
+      returnUrl: 'http://b7345aba.ngrok.io',
+      notifyUrl: 'http://b7345aba.ngrok.io/api/booking',
       requestType: 'captureMoMoWallet',
       extraData: `${index}-${this.userInfo.userId}-${this.userInfo.email}-${startTime}-${this.selectedPackage.value}-${new Date(readyParkTime).toLocaleString('en-US')}`,
       signature: ''
@@ -235,14 +249,6 @@ export class HomeComponent implements OnInit {
       wordTranslated = word;
     });
     return wordTranslated;
-  }
-
-  private _checkValidTime(): boolean {
-    console.log('Ten ten')
-    if (this.arriveTime < this.leaveHomeTime) {
-      return true;
-    }
-    return false;
   }
 
   toggleFilter() {
