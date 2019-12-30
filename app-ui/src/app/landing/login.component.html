@@ -3,23 +3,21 @@
   <mat-sidenav-container class="example-container" (backdropClick)="sidenav.close()">
     <mat-sidenav class="bg-dark" #sidenav>
       <fa-icon (click)="sidenav.close()" [icon]="faChevronLeft" size="2x" [styles]="{'color': 'white'}"></fa-icon>
-      <mat-nav-list>
-        <div class="mat-list-option text-white" (click)="navTo(i)" *ngFor="let l of list; index as i">
-          <fa-icon [icon]="navBarList[i]"></fa-icon>
-          {{l| translate}}
+      <div class="sidenav-opt text-white" (click)="navTo(i)" *ngFor="let l of list; index as i">
+        <fa-icon [icon]="navBarList[i]"></fa-icon>
+        {{l.opt| translate}}
+        <div (click)="_setLang(d.code)" class="sidenav-opt-details text-white" *ngFor="let d of l.details">
+          {{d.name | translate}}
         </div>
-      </mat-nav-list>
+      </div>
+<!--      <select class="form-control form-control-sm">-->
+<!--        <option [value]="lang" *ngFor="let lang of langList">-->
+<!--          <span>{{lang| translate}}</span>-->
+<!--        </option>-->
+<!--      </select>-->
     </mat-sidenav>
     <mat-sidenav-content>
-      <fa-icon (click)="sidenav.open()" [icon]="faBars" size="2x" [styles]="{'color': 'black'}"></fa-icon>
-      <div class="float-right">
-        <select class="form-control form-control-sm">
-          <option [value]="lang" *ngFor="let lang of langList">
-            <span><fa-icon [icon]="faPowerOff" [styles]="{'color': 'purple'}"></fa-icon></span>
-            <span>{{lang| translate}}</span>
-          </option>
-        </select>
-      </div>
+
       <div class="login-page container-fluid">
         <div class="wrap-symbol">
           <fa-icon [icon]="faGithub" size="10x"></fa-icon>
@@ -64,15 +62,7 @@
           <div class="text-center text-black-50">&copy; {{'Copyright 2019 Designed by Yafuo.'| translate}}</div>
         </div>
       </div>
-<!--      <div class="footer">-->
-<!--        <div class="text-center" style="color: white">&copy; Copyright 2019 Designed by Yafuo.</div>-->
-<!--        <div class="language text-center">-->
-<!--          <a href="">|| Vietnamese ||</a>-->
-<!--          <a href=""> English ||</a>-->
-<!--          <a href=""> Español ||</a>-->
-<!--          <a href=""> Chinese ||</a>-->
-<!--        </div>-->
-<!--      </div>-->
+      <fa-icon class="position-fixed" style="bottom: 0;right: 0;" (click)="sidenav.open()" [icon]="faBars" size="2x" [styles]="{'color': 'black'}"></fa-icon>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

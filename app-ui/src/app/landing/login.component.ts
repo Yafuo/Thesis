@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {faBars, faArrowLeft, faKey, faUser, faUserPlus, faPowerOff, faChevronLeft} from "@fortawesome/free-solid-svg-icons";
+import {faBars, faArrowLeft, faKey, faUser, faUserPlus, faLanguage, faChevronLeft} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {User} from "./signup/signup.component";
 import {HttpClient} from "@angular/common/http";
@@ -16,7 +16,6 @@ import {EventBusService} from "../common/service/event-bus.service";
 })
 export class LoginComponent implements OnInit {
 
-  list = ['Sign up', 'Exit'];
   url = ['/landing/signup', '#'];
   wrongList = ['WRONG_PASSWORD', 'WRONG_EMAIL'];
   wrongIndex = -1;
@@ -26,9 +25,11 @@ export class LoginComponent implements OnInit {
   faKey = faKey;
   faUser = faUser;
   faUserPlus =  faUserPlus;
-  faPowerOff= faPowerOff;
-  navBarList = [this.faUserPlus, this.faPowerOff];
-  langList = ['Vietnamese', 'English', 'Español', 'Chinese'];
+  faLanguage = faLanguage;
+  navBarList = [this.faUserPlus, this.faLanguage];
+  selectedLang = '';
+  langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
+  list = [{opt: 'Sign up', details: []}, {opt: 'Language', details: this.langList}];
   userIconList = [this.faKey, this.faUser];
   user = new User('', '', '');
   constructor(private translate: TranslateService, private http: HttpClient
@@ -50,7 +51,8 @@ export class LoginComponent implements OnInit {
   signin() {
     const params = {
       email: this.user.email,
-      password: this.user.password
+      password: this.user.password,
+      lang: this.selectedLang
     }
     this.http.post('/api/login', params).subscribe(r => {
       const json = r as any;
@@ -63,7 +65,13 @@ export class LoginComponent implements OnInit {
   }
 
   navTo(i: number) {
+    if (i + 1 === this.list.length) return;
     this.router.navigate([this.url[i]]);
+  }
+
+  private _setLang(lang: string) {
+    this.translate.setDefaultLang(lang);
+    this.selectedLang = lang;
   }
 
 }

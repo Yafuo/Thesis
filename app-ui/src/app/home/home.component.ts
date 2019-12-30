@@ -49,25 +49,20 @@ export class HomeComponent implements OnInit {
   isShowResult = false;
   isCurrentLocationChecked = false;
   qrUrl = '';
-  isStake = false;
   newsObj = {billMsg: '', billCode: ''};
   socket: SocketIOClient.Socket;
-  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, endTime: new Date()};
+  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, endTime: new Date(), lang: ''};
   isAvailable = false;
   extend = false;
   endTime = '';
 
   constructor(private translate: TranslateService, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
+    translate.setDefaultLang('vn');
   }
 
   ngOnInit() {
-    this.http.get<any>('/api/get-user-info').subscribe(r => {
-      this.userInfo = r.result;
-      console.log(this.userInfo);
-      this.selectedParkingStation = this.userInfo.status != 'none' ? this.parkingStationList[this.userInfo.stationId-1] : '';
-      this.endTime = this.userInfo.status != 'none' ? new Date(this.userInfo.endTime).toLocaleString('en-US') : '';
-    });
+    this._getUserInfo();
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterAllSearchList = this.allSearch.valueChanges.pipe(
       startWith(''),
@@ -83,22 +78,40 @@ export class HomeComponent implements OnInit {
     );
   }
 
+  private _setLang(lang: string) {
+    this.translate.setDefaultLang(lang);
+  }
+
+  private _getUserInfo() {
+    this.http.get<any>('/api/get-user-info').subscribe(r => {
+      this.userInfo = r.result;
+      this._setLang(this.userInfo.lang);
+      console.log(this.userInfo);
+      this.selectedParkingStation = this.userInfo.status != 'none' ? this.parkingStationList[this.userInfo.stationId-1] : '';
+      this.endTime = this.userInfo.status != 'none' ? new Date(this.userInfo.endTime).toLocaleString('en-US') : '';
+    });
+  }
+
   private _alwaysListenToChange() {
-    this.socket = io.connect('http://c23736ea.ngrok.io');
+    this.socket = io.connect('http://c367ed8e.ngrok.io');
     this.socket.on('news', (news: any) => {
       console.log(news);
       this.qrUrl = '';
       this.newsObj = news;
-      this.isStake = true;
     });
     this.socket.on('user-status', (json: any) => {
       console.log(json);
       this.userInfo.status = json.status;
+      if (this.userInfo.status === 'staked') this._getUserInfo();
     });
   }
 
   toggleExtend() {
     this.extend = !this.extend;
+  }
+
+  private _park() {
+
   }
 
   private _cancel() {
@@ -130,8 +143,8 @@ export class HomeComponent implements OnInit {
       amount: (Number(this.selectedPackage.cost) * 2).toString(10),
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://c23736ea.ngrok.io',
-      notifyUrl: 'http://c23736ea.ngrok.io/api/extending',
+      returnUrl: 'http://c367ed8e.ngrok.io',
+      notifyUrl: 'http://c367ed8e.ngrok.io/api/extending',
       requestType: 'captureMoMoWallet',
       extraData: `${params.stationId}-${params.slotId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
       signature: ''
@@ -184,8 +197,8 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://3b24fbce.ngrok.io',
-      notifyUrl: 'http://3b24fbce.ngrok.io/api/booking',
+      returnUrl: 'http://c367ed8e.ngrok.io',
+      notifyUrl: 'http://c367ed8e.ngrok.io/api/booking',
       requestType: 'captureMoMoWallet',
       extraData: `${index}-${this.userInfo.userId}-${this.userInfo.email}-${startTime}-${this.selectedPackage.value}-${new Date(readyParkTime).toLocaleString('en-US')}`,
       signature: ''

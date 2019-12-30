@@ -23,14 +23,14 @@ var User = require('./models/user');
 var mongoose = require('mongoose');
 // mongoose.connect('mongodb+srv://Yafuo:phuanhdai@node-smart-parking-btryk.mongodb.net/test?retryWrites=true'
 //     , {useNewUrlParser: true});
-// mongoose.connect('mongodb+srv://Yafuo:phuanhdai@node-smart-parking-btryk.mongodb.net/real?retryWrites=true&w=majority'
-//     , {useNewUrlParser: true, useFindAndModify: false, useUnifiedTopology: true}).then(r => {
-//       console.log(r);
-// }).catch(err => console.log(err));
-mongoose.connect('mongodb://localhost:27017/real'
+mongoose.connect('mongodb+srv://Yafuo:phuanhdai@node-smart-parking-btryk.mongodb.net/real?retryWrites=true&w=majority'
     , {useNewUrlParser: true, useFindAndModify: false, useUnifiedTopology: true}).then(r => {
   console.log('Database connect successfully');
 }).catch(err => console.log(err));
+// mongoose.connect('mongodb://localhost:27017/real'
+//     , {useNewUrlParser: true, useFindAndModify: false, useUnifiedTopology: true}).then(r => {
+//   console.log('Database connect successfully');
+// }).catch(err => console.log(err));
 // mongoose.set('useFindAndModify', false);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

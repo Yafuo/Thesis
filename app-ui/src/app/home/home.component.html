@@ -24,7 +24,7 @@
   </div>
   <owl-date-time pickerType="timer" #ultiTime></owl-date-time>
   <div class="col-4">
-    <button [disabled]="qrUrl || userInfo.status != 'none' || newsObj.billMsg === 'Success'" (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
+    <button [disabled]="qrUrl || userInfo.status != 'none'" (click)="_book()" class="btn btn-sm btn-primary">Booking</button>
   </div>
 </div>
 <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto">
@@ -99,15 +99,15 @@
     </div>
   </div>
 </div>
-<div *ngIf="isStake || userInfo.status === 'staked'" class="wrap-feature-btn row">
+<div *ngIf="userInfo.status === 'staked'" class="wrap-feature-btn row">
   <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
     <button [disabled]="userInfo.status === 'paid'" class="btn btn-sm btn-primary w-100">{{'Park'}}</button>
   </div>
   <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
-    <button class="btn btn-sm btn-primary w-100" (click)="toggleExtend()">{{'Extend'}}</button>
+    <button class="btn btn-sm btn-warning w-100" (click)="toggleExtend()">{{'Extend'}}</button>
   </div>
   <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
-    <button class="btn btn-sm btn-primary w-100" (click)="_cancel()">{{'Cancel'}}</button>
+    <button class="btn btn-sm btn-danger w-100" (click)="_cancel()">{{'Cancel'}}</button>
   </div>
   <div class="package-choice hide-this-{{!extend}}">
     <mat-accordion [hideToggle]="true">

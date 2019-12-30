@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import {faBars, faArrowLeft, faChevronLeft,faSignInAlt,faPowerOff} from "@fortawesome/free-solid-svg-icons";
+import {faBars, faArrowLeft, faChevronLeft,faSignInAlt,faLanguage} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {HttpClient} from "@angular/common/http";
 import {Router} from "@angular/router";
 import {NgxSpinnerService} from "ngx-spinner";
 import {CookieService} from "ngx-cookie-service";
+import {TranslateService} from "@ngx-translate/core";
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
@@ -12,18 +13,19 @@ import {CookieService} from "ngx-cookie-service";
 })
 export class SignupComponent implements OnInit {
 
-  list = ['Sign in', 'Exit'];
   url = ['/landing/login', '#'];
   faBars = faBars;
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
   faChevronLeft = faChevronLeft;
   faSignInAlt = faSignInAlt;
-  faPowerOff = faPowerOff;
-  navBarList = [this.faSignInAlt, this.faPowerOff];
-  langList = ['Vietnamese', 'English', 'Español', 'Chinese'];
+  faLanguage = faLanguage;
+  navBarList = [this.faSignInAlt, this.faLanguage];
+  selectedLang = '';
+  langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
+  list = [{opt: 'Sign in', details: []}, {opt: 'Language', details: this.langList}];
   user = new User('', '', '');
-  constructor(private http: HttpClient, private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) { }
+  constructor(private http: HttpClient, private translate: TranslateService, private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) { }
 
   ngOnInit() {
     if (this.cookieService.check('token')) {
@@ -40,7 +42,8 @@ export class SignupComponent implements OnInit {
   signup() {
     const params = {
       email: this.user.email,
-      password: this.user.password
+      password: this.user.password,
+      lang: this.selectedLang ? this.selectedLang : 'vn'
     };
     this.http.post('/api/signup', params).subscribe(r => {
       console.log(r);
@@ -49,8 +52,14 @@ export class SignupComponent implements OnInit {
     });
   }
 
-  navTo(i) {
+  navTo(i: number) {
+    if (i + 1 === this.list.length) return;
     this.router.navigate([this.url[i]]);
+  }
+
+  private _setLang(lang: string) {
+    this.translate.setDefaultLang(lang);
+    this.selectedLang = lang;
   }
 
 }

@@ -37,7 +37,7 @@ router.post('/signup', function (req, res, next) {
         const user = new User({
             email: req.body.email,
             password: passwordHash,
-            isLinkedToMomo: true
+            lang: req.body.lang
         });
         User.findOne({email: user.email}, {password: user.password}).then(u => {
             if (!u) {
@@ -243,7 +243,7 @@ router.post('/canceling', (req, res, next) => {
     });
 });
 router.post('/booking', (req, res, next) => {
-    if (req.body.errorCode !== 0) return;
+    if (req.body.errorCode !== '0') return;
     let info = req.body.extraData.split('-');
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: Number(info[0])}}, {$sort: {'slots.future.startTime': 1}}, {
         $group: {
@@ -254,7 +254,7 @@ router.post('/booking', (req, res, next) => {
         .then(r => {
             var slot = [];
             var flag = false;
-            var index = 0;
+            var index = 1;
             console.log(r);
             r.forEach(i => {
                 slot.push(i._id);
@@ -311,10 +311,11 @@ router.post('/booking', (req, res, next) => {
                 if (flag) {
                     ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
                         if (data) {
-                            User.updateOne({_id: info[1]}, {$set: {status: 'staked'}}).then(data => {
+                            User.updateOne({email: info[2]}, {$set: {status: 'staked'}}).then(data => {
                                 if (data) {
                                     res.json({result: 'BOOKING_SUCCESSFUL'});
                                     req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                    req.app.io.emit('user-status', {status: 'staked'});
                                     return;
                                 }
                                 res.json({result: 'UPDATE_USER_STAKE_STATE_FAILED'});
@@ -352,19 +353,19 @@ router.post('/booking', (req, res, next) => {
                 r.push(d);
                 ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
                     if (data) {
-                        User.updateOne({_id: Number(info[1])}, {$set: {status: 'staked'}}).then(data => {
+                        User.updateOne({email: info[2]}, {$set: {status: 'staked'}}).then(data => {
                             if (data) {
-                                res.json({result: 'BOOKING_SUCCESSFUL'});
                                 req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                req.app.io.emit('user-status', {status: 'staked'});
+                                res.json({result: 'BOOKING_SUCCESSFUL'});
                                 return;
                             }
+                            req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                            res.json({result: 'BOOKING_FAILED'});
                         }).catch(err => {
                             console.log(err);
                         });
-                        return;
                     }
-                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
-                    res.json({result: 'BOOKING_FAILED'});
                 }).catch(err => {
                     console.log(err);
                 });
@@ -384,10 +385,10 @@ router.get('/get-user-info', (req, res, next) => {
                 ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {'slots.future._id': decoded._id}}, {$project: {stationId: '$_id', slotId: '$slots._id', endTime: '$slots.future.endTime'}}])
                     .then(rr => {
                         if (rr.length === 0) {
-                            res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: 0, slotId: 0, endTime: ''}});
+                            res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: 0, slotId: 0, endTime: '', lang: r.lang}});
                             return;
                         }
-                        res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: rr[0].stationId, slotId: rr[0].slotId, endTime: rr[0].endTime}});
+                        res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: rr[0].stationId, slotId: rr[0].slotId, endTime: rr[0].endTime, lang: r.lang}});
                     });
             }).catch(err => {
                 console.log(err);
