@@ -162,30 +162,30 @@ router.post('/get-available-slot', (req, res, next) => {
     //     });
 });
 router.post('/extending', (req, res, next) => {
+    if (req.body.errorCode != 0) return;
     const extraData = req.body.extraData.split('-');
+    const slotId = extraData[1];
     var flag = false;
-    ParkingSlot.findOne({_id: Number(extraData[0])})
+    ParkingSlot.aggregate([{$unwind: '$slots'}, {$match: {_id: Number(extraData[0])}}, {$sort: {'slots._id': 1}}, {$group: {_id: '$_id', slots: {'$push': '$slots'}}}])
         .then(r => {
-            var info = r.slots;
-            for (var i = 0; i < info.length; i++) {
-                if (flag) break;
-                var futures = info[i].future;
-                for (var j = 0; j < futures.length; j++) {
-                    const email = futures[j].userName;
-                    if (extraData[1] === email) {
-                        var newEndTime = new Date(extraData[3]);
-                        newEndTime.setHours(new Date(extraData[3]).getHours() + Number(extraData[2]));
-                        if (futures.length === 1) {
-                            futures[j].endTime = newEndTime;
-                            futures[j].package += Number(extraData[2]);
+            var info = r[0].slots;
+            var futures = info[slotId-1].future;
+            for (var i = 0; i< futures.length; i++) {
+                const email = futures[i].userName;
+                if (extraData[2] === email) {
+                    var newEndTime = new Date(extraData[4]);
+                    newEndTime.setHours(new Date(extraData[4]).getHours() + Number(extraData[3]));
+                    if (futures.length === 1) {
+                        futures[i].endTime = newEndTime;
+                        futures[i].package += Number(extraData[3]);
+                        flag = true;
+                        break;
+                    } else {
+                        if (newEndTime < futures[i+1].endTime) {
+                            futures[i].endTime = newEndTime;
+                            futures[i].package += Number(extraData[3]);
                             flag = true;
-                        } else {
-                            if (newEndTime < futures[j+1].endTime) {
-                                futures[j].endTime = newEndTime;
-                                futures[j].package += Number(extraData[2]);
-                                flag = true;
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
@@ -243,6 +243,7 @@ router.post('/canceling', (req, res, next) => {
     });
 });
 router.post('/booking', (req, res, next) => {
+    if (req.body.errorCode !== 0) return;
     let info = req.body.extraData.split('-');
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: Number(info[0])}}, {$sort: {'slots.future.startTime': 1}}, {
         $group: {

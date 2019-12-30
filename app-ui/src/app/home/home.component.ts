@@ -115,12 +115,13 @@ export class HomeComponent implements OnInit {
   private _extend() {
     this.extend = false;
     const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
-    var date = new Date();
+    var date = Date.now().toString(10);
     const params = {
       stationId: index,
       userName: this.userInfo.email,
       package: this.selectedPackage.value,
-      endTime: this.endTime
+      endTime: this.endTime,
+      slotId: this.userInfo.slotId
     };
     const d = {
       partnerCode: 'MOMO',
@@ -132,7 +133,7 @@ export class HomeComponent implements OnInit {
       returnUrl: 'http://c23736ea.ngrok.io',
       notifyUrl: 'http://c23736ea.ngrok.io/api/extending',
       requestType: 'captureMoMoWallet',
-      extraData: `${params.stationId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
+      extraData: `${params.stationId}-${params.slotId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
       signature: ''
     };
     var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
