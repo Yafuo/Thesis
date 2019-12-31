@@ -8,7 +8,7 @@ import { faBars} from "@fortawesome/free-solid-svg-icons";
 })
 export class TopPanelComponent implements OnInit {
 
-  farBars = faBars;
+  faBars = faBars;
   constructor() { }
 
   ngOnInit() {

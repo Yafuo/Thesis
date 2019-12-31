@@ -107,7 +107,7 @@ export class HomeComponent implements OnInit {
   }
 
   private _alwaysListenToChange() {
-    this.socket = io.connect('http://b7345aba.ngrok.io');
+    this.socket = io.connect('http://localhost:3000');
     this.socket.on('news', (news: any) => {
       console.log(news);
       this.qrUrl = '';
