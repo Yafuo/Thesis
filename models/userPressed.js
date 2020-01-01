@@ -5,6 +5,7 @@ const userPressedSchema = new Schema({
     _id: Number,
     pressedList: [
         {
+            _id: Number,
             slotId: Number,
             userName: String
         }

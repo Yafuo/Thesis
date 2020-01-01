@@ -33,9 +33,10 @@
         <div class="col-10">
           <fieldset *ngIf="isAvailable" class="p-2" style="border: 1px #28a745 solid">
             <legend class="w-auto"><span class="badge badge-success">{{'Result' | translate}}</span></legend>
+            <p *ngIf="userInfo.status === 'none' && !isTimeValid" class="badge badge-danger">{{'This time has passed. Please choose another time!'}}</p>
             <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
             <span class="{{'text-success'}}">{{'Available' | translate}}</span>
-            <button [disabled]="qrUrl || userInfo.status != 'none'" (click)="_book()" class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
+            <button [disabled]="qrUrl || userInfo.status != 'none' || !isTimeValid" (click)="_book()" class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
           </fieldset>
           <fieldset *ngIf="!isAvailable" class="p-2" style="border: 1px #dc3545 solid">
             <legend class="w-auto"><span class="badge badge-danger">{{'Result' | translate}}</span></legend>
@@ -119,7 +120,7 @@
           </div>
         </div>
       </div>
-      <div *ngIf="userInfo.status === 'staked'" class="wrap-feature-btn row">
+      <div *ngIf="userInfo.status.indexOf('staked') > -1" class="wrap-feature-btn row">
         <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
           <button [disabled]="userInfo.status === 'paid'" (click)="_park()" class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
         </div>

@@ -99,11 +99,40 @@ router.post('/save-user-pressed', (req, res, next) => {
     const extraData = req.body.extraData.split('-');
     UserPressed.findOne({_id: Number(extraData[0])}).then(r => {
         if (!r) {
-            res.json({result: 'CONTROL_FAILED'});
+            var pressedList = [];
+            const userPressed = {
+                _id: 1,
+                slotId: Number(extraData[1]),
+                userName: extraData[2]
+            };
+            pressedList.push(userPressed);
+            const newObj = new UserPressed({
+                _id: Number(extraData[0]),
+                pressedList: pressedList
+            });
+            newObj.save().then(r => {
+                if (!r) {
+                    res.json({result: 'NOT_READY_TO_PARK'});
+                    return;
+                }
+                User.updateOne({email: userPressed.userName}, {$set: {status: 'paid'}}).then(r => {
+                    if (!r) {
+                        res.json({result: 'NOT_READY_TO_PARK'});
+                        return;
+                    }
+                    req.app.io.emit('user-status', {status: 'paid'});
+                    res.json({result: 'READY_TO_PARK'});
+                }).catch(err => {
+                    console.log(err);
+                });
+            }).catch(err => {
+                console.log(err);
+            })
             return;
         }
         var pressedList = r.pressedList;
         const userPressed = {
+            _id: pressedList[pressedList.length-1]._id + 1,
             slotId: Number(extraData[1]),
             userName: extraData[2]
         };
@@ -133,128 +162,98 @@ router.post('/save-user-pressed', (req, res, next) => {
 router.post('/get-available-slot', (req, res, next) => {
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$sort: {'slots.future.startTime': 1}}, {$group: {_id: '$slots._id', futures: {'$push': '$slots.future'}}}, {$project: {_id: '$_id', future: '$futures' ,total: {$size: '$futures'}}}, {$sort: {total: 1}}])
         .then(r => {
-            if (r.length != 4) {
-                res.json({result: 'SLOT_AVAILABLE'});
-                return;
-            }
-            const x = new Date(req.body.startTime);
-            const y = new Date(req.body.endTime);
-            for (var i = 0; i < r.length; i++) {
-                var s = r[i].future;
-                if (s.length === 1) {
-                    if (y < s[0].startTime || x > s[0].endTime) {
-                        res.json({result: 'SLOT_AVAILABLE'});
-                        return;
-                    }
-                } else {
-                    for (var j = 0; j < s.length - 1; j++) {
-                        var end = s[j].endTime;
-                        var start = s[j + 1].startTime;
-                        if ((end < x && y < start) || (y < s[0].startTime) || (x > s[s.length - 1].endTime)) {
+            ParkingSlot.aggregate([{$match: {_id: req.body.stationId}}, {$project: {_id: 0, capacity: '$capacity'}}]).then(capacity => {
+                if (r.length !== capacity[0].capacity) {
+                    res.json({result: 'SLOT_AVAILABLE'});
+                    return;
+                }
+                const x = new Date(req.body.startTime);
+                const y = new Date(req.body.endTime);
+                for (var i = 0; i < r.length; i++) {
+                    var s = r[i].future;
+                    if (s.length === 1) {
+                        if (y < s[0].startTime || x > s[0].endTime) {
                             res.json({result: 'SLOT_AVAILABLE'});
                             return;
                         }
+                    } else {
+                        for (var j = 0; j < s.length - 1; j++) {
+                            var end = s[j].endTime;
+                            var start = s[j + 1].startTime;
+                            if ((end < x && y < start) || (y < s[0].startTime) || (x > s[s.length - 1].endTime)) {
+                                res.json({result: 'SLOT_AVAILABLE'});
+                                return;
+                            }
+                        }
                     }
                 }
-            }
-            res.json({result: 'SLOT_NOT_AVAILABLE'});
+                res.json({result: 'SLOT_NOT_AVAILABLE'});
+            }).catch(err => {
+                console.log(err);
+            });
         }).catch(err => {
         console.log(err);
     });
-    // ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.endTime': {$lt: new Date(req.body.startTime)}}]} }, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}])
-    //     .then(r => {
-    //         var arr = [];
-    //         if (r.length != 0) {
-    //             r[0].future.forEach(i => {
-    //                 arr.push(i);
-    //             });
-    //         }
-    //         ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future.startTime': {$gt: new Date(req.body.endTime)}}]}}, {$group: {_id: '$slots._id', future: {'$push': '$slots.future'}}}])
-    //             .then(r => {
-    //                 if (r.length != 0) {
-    //                     r.forEach(i => {
-    //                         arr.push(i.future);
-    //                     });
-    //                 }
-    //                 if (arr.length === 0) {
-    //                     res.json({result: 'SLOT_AVAILABLE'});
-    //                     return;
-    //                 }
-    //                 ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {$and: [{_id: req.body.stationId}, {'slots.future': {$nin: arr}}]}}, {$group: {_id: '$_id', future: {'$push': '$slots.future'}}}])
-    //                     .then(r => {
-    //                         if (r.length === 0) {
-    //                             res.json({result: 'SLOT_AVAILABLE'});
-    //                             return;
-    //                         }
-    //                         res.json({result: 'SLOT_NOT_AVAILABLE'});
-    //                     }).catch(err => {
-    //                     console.log(err);
-    //                     res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
-    //                 })
-    //             }).catch(err => {
-    //             res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
-    //         });
-    //     })
-    //     .catch(err => {
-    //         console.log(err);
-    //         res.status(503).json({result: 'MONGOOSE_SERVICE_FAILED (aggregate)'});
-    //     });
 });
 router.post('/extending', (req, res, next) => {
-    if (req.body.errorCode != 0) return;
+    if (req.body.errorCode !== '0') return;
     const extraData = req.body.extraData.split('-');
-    const slotId = extraData[1];
+    const slotId = Number(extraData[1]);
     var flag = false;
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$match: {_id: Number(extraData[0])}}, {$sort: {'slots._id': 1}}, {$group: {_id: '$_id', slots: {'$push': '$slots'}}}])
         .then(r => {
-            var info = r[0].slots;
-            var futures = [];
-            if (info.length === Number(extraData[5])) {
-                futures = info[slotId-1].future;
-            } else {
-                futures = info[info.map(s => {return s._id}).indexOf(slotId)];
-            }
-            for (var i = 0; i< futures.length; i++) {
-                const email = futures[i].userName;
-                if (extraData[2] === email) {
-                    var newEndTime = new Date(extraData[4]);
-                    newEndTime.setHours(new Date(extraData[4]).getHours() + Number(extraData[3]));
-                    if (futures.length === 1) {
-                        futures[i].endTime = newEndTime;
-                        futures[i].package += Number(extraData[3]);
-                        flag = true;
-                        break;
-                    } else {
-                        if (futures[i+1]) {
-                            if (newEndTime < futures[i+1].endTime) {
+            ParkingSlot.aggregate([{$match: {_id: Number(extraData[0])}}, {$project: {_id: 0, capacity: '$capacity'}}]).then(capacity => {
+                var info = r[0].slots;
+                var futures = [];
+                if (info.length === capacity[0].capacity) {
+                    futures = info[slotId-1].future;
+                } else {
+                    futures = info[info.map(s => {return s._id}).indexOf(slotId)].future;
+                }
+                for (var i = 0; i< futures.length; i++) {
+                    const email = futures[i].userName;
+                    if (extraData[2] === email) {
+                        var newEndTime = new Date(extraData[4]);
+                        newEndTime.setHours(new Date(extraData[4]).getHours() + Number(extraData[3]));
+                        if (futures.length === 1) {
+                            futures[i].endTime = newEndTime;
+                            futures[i].package += Number(extraData[3]);
+                            flag = true;
+                            break;
+                        } else {
+                            if (futures[i+1]) {
+                                if (newEndTime < futures[i+1].endTime) {
+                                    futures[i].endTime = newEndTime;
+                                    futures[i].package += Number(extraData[3]);
+                                    flag = true;
+                                    break;
+                                }
+                            } else {
                                 futures[i].endTime = newEndTime;
                                 futures[i].package += Number(extraData[3]);
                                 flag = true;
                                 break;
                             }
-                        } else {
-                            futures[i].endTime = newEndTime;
-                            futures[i].package += Number(extraData[3]);
-                            flag = true;
-                            break;
                         }
                     }
                 }
-            }
-            if (flag) {
-                ParkingSlot.updateOne({_id: Number(extraData[0])}, {$set: {slots: info}})
-                    .then(r => {
-                        if (r) {
-                            res.json({result: 'EXTEND_SUCCESSFUL'});
+                if (flag) {
+                    ParkingSlot.updateOne({_id: Number(extraData[0])}, {$set: {slots: info}})
+                        .then(r => {
+                            if (r) {
+                                res.json({result: 'EXTEND_SUCCESSFUL'});
+                                req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
+                                return;
+                            }
+                            res.json({result: 'EXTEND_FAILED'});
                             req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
-                            return;
-                        }
-                        res.json({result: 'EXTEND_FAILED'});
-                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
-                    }).catch(err => {
-                    console.log(err);
-                });
-            }
+                        }).catch(err => {
+                        console.log(err);
+                    });
+                }
+            }).catch(err => {
+                console.log(err);
+            });
         }).catch(err => {
             console.log(err);
     });
@@ -303,109 +302,77 @@ router.post('/booking', (req, res, next) => {
         }
     }, {$sort: {_id: 1}}])
         .then(r => {
-            var slot = [];
-            var flag = false;
-            var index = 1;
-            console.log(r);
-            r.forEach(i => {
-                slot.push(i._id);
-            });
-            for (var i = 0; i < r.length - 1; i++) {
-                for (var j = i + 1; j < r.length; j++) {
-                    if (r[i].future.length > r[j].future.length) {
-                        var temp = r[i];
-                        r[i] = r[j];
-                        r[j] = temp;
-                    }
-                }
-            }
-            if (slot.length === 4) {
-                const x = new Date(info[3]);
-                const y = new Date(info[5]);
-                for (var i = 0; i < r.length; i++) {
-                    if (flag) break;
-                    var s = r[i].future;
-                    if (s.length === 1) {
-                        if (y < s[0].startTime || x > s[0].endTime) {
-                            const d = {
-                                _id: info[1],
-                                userName: info[2],
-                                status: 'booked',
-                                startTime: new Date(info[3]),
-                                package: info[4],
-                                endTime: new Date(info[5])
-                            };
-                            s.push(d);
-                            flag = true;
-                            break;
-                        }
-                    }
-                    for (var j = 0; j < s.length - 1; j++) {
-                        var end = s[j].endTime;
-                        var start = s[j + 1].startTime;
-                        if ((end < x && y < start) || (y < s[0].startTime) || (x > s[s.length - 1].endTime)) {
-                            //Book here
-                            const d = {
-                                _id: info[1],
-                                userName: info[2],
-                                status: 'booked',
-                                startTime: new Date(info[3]),
-                                package: Number(info[4]),
-                                endTime: new Date(info[5])
-                            };
-                            s.push(d);
-                            flag = true;
-                            break;
+            ParkingSlot.aggregate([{$match: {_id: Number(info[0])}}, {$project: {_id: 0, capacity: '$capacity'}}]).then(capacity => {
+                var slot = [];
+                var flag = false;
+                var index = 1;
+                console.log(r);
+                r.forEach(i => {
+                    slot.push(i._id);
+                });
+                for (var i = 0; i < r.length - 1; i++) {
+                    for (var j = i + 1; j < r.length; j++) {
+                        if (r[i].future.length > r[j].future.length) {
+                            var temp = r[i];
+                            r[i] = r[j];
+                            r[j] = temp;
                         }
                     }
                 }
-                if (flag) {
-                    ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
-                        if (data) {
-                            User.updateOne({email: info[2]}, {$set: {status: 'staked'}}).then(data => {
-                                if (data) {
-                                    res.json({result: 'BOOKING_SUCCESSFUL'});
-                                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
-                                    req.app.io.emit('user-status', {status: 'staked'});
-                                    return;
-                                }
-                                res.json({result: 'UPDATE_USER_STAKE_STATE_FAILED'});
-                            }).catch(err => {
-                                console.log(err);
-                            });
-                            return;
+                if (slot.length === capacity[0].capacity) {
+                    const x = new Date(info[3]);
+                    const y = new Date(info[5]);
+                    for (var i = 0; i < r.length; i++) {
+                        if (flag) break;
+                        var s = r[i].future;
+                        if (s.length === 1) {
+                            if (y < s[0].startTime || x > s[0].endTime) {
+                                const d = {
+                                    _id: info[1],
+                                    userName: info[2],
+                                    status: 'booked',
+                                    startTime: new Date(info[3]),
+                                    package: info[4],
+                                    endTime: new Date(info[5])
+                                };
+                                s.push(d);
+                                flag = true;
+                                break;
+                            }
                         }
-                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
-                        res.json({result: 'BOOKING_FAILED'});
-                    }).catch(err => {
-                        console.log(err);
-                    });
-                }
-            } else {
-                while (slot.indexOf(index) > -1) {
-                    index++;
-                }
-                const d = {
-                    _id: index,
-                    future: [
-                        {
-                            _id: info[1],
-                            userName: info[2],
-                            status: 'booked',
-                            startTime: new Date(info[3]),
-                            package: Number(info[4]),
-                            endTime: new Date(info[5])
+                        for (var j = 0; j < s.length - 1; j++) {
+                            var end = s[j].endTime;
+                            var start = s[j + 1].startTime;
+                            if ((end < x && y < start) || (y < s[0].startTime) || (x > s[s.length - 1].endTime)) {
+                                //Book here
+                                const d = {
+                                    _id: info[1],
+                                    userName: info[2],
+                                    status: 'booked',
+                                    startTime: new Date(info[3]),
+                                    package: Number(info[4]),
+                                    endTime: new Date(info[5])
+                                };
+                                s.push(d);
+                                flag = true;
+                                break;
+                            }
                         }
-                    ]
-                }
-                r.push(d);
-                ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
-                    if (data) {
-                        User.updateOne({email: info[2]}, {$set: {status: 'staked'}}).then(data => {
+                    }
+                    if (flag) {
+                        ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
                             if (data) {
-                                req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
-                                req.app.io.emit('user-status', {status: 'staked'});
-                                res.json({result: 'BOOKING_SUCCESSFUL'});
+                                User.updateOne({email: info[2]}, {$set: {status: 'staked'+info[4]}}).then(data => {
+                                    if (data) {
+                                        res.json({result: 'BOOKING_SUCCESSFUL'});
+                                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                        req.app.io.emit('user-status', {status: 'staked'+info[4]});
+                                        return;
+                                    }
+                                    res.json({result: 'UPDATE_USER_STAKE_STATE_FAILED'});
+                                }).catch(err => {
+                                    console.log(err);
+                                });
                                 return;
                             }
                             req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
@@ -414,10 +381,46 @@ router.post('/booking', (req, res, next) => {
                             console.log(err);
                         });
                     }
-                }).catch(err => {
-                    console.log(err);
-                });
-            }
+                } else {
+                    while (slot.indexOf(index) > -1) {
+                        index++;
+                    }
+                    const d = {
+                        _id: index,
+                        future: [
+                            {
+                                _id: info[1],
+                                userName: info[2],
+                                status: 'booked',
+                                startTime: new Date(info[3]),
+                                package: Number(info[4]),
+                                endTime: new Date(info[5])
+                            }
+                        ]
+                    }
+                    r.push(d);
+                    ParkingSlot.updateOne({_id: Number(info[0])}, {$set: {slots: r}}).then(data => {
+                        if (data) {
+                            User.updateOne({email: info[2]}, {$set: {status: 'staked'+info[4]}}).then(data => {
+                                if (data) {
+                                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                    req.app.io.emit('user-status', {status: 'staked'+info[4]});
+                                    res.json({result: 'BOOKING_SUCCESSFUL'});
+                                    return;
+                                }
+                                req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                res.json({result: 'BOOKING_FAILED'});
+                            }).catch(err => {
+                                console.log(err);
+                            });
+                        }
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                }
+            }).catch(err => {
+                console.log(err);
+            });
         }).catch(err => {
         console.log(err);
     });

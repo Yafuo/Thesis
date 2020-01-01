@@ -19,7 +19,7 @@ import {Router} from "@angular/router";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://f703816a.ngrok.io';
+  domain = 'http://461292c9.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -49,14 +49,14 @@ export class HomeComponent implements OnInit {
   selectedPackage = {name: '', cost: '', value: 0};
   height = '';
   state = 'down';
-  arriveTime = new Date(Date.now());
+  arriveTime: Date;
   leaveHomeTime = new Date(Date.now());
   isShowResult = false;
   isCurrentLocationChecked = false;
   qrUrl = '';
   newsObj = {billMsg: '', billCode: ''};
   socket: SocketIOClient.Socket;
-  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, endTime: new Date(), lang: ''};
+  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, package: 0, endTime: new Date(), lang: ''};
   isAvailable = false;
   extend = false;
   endTime = '';
@@ -64,6 +64,7 @@ export class HomeComponent implements OnInit {
   langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
   list = [{opt: 'Log out', details: []}, {opt: 'Language', details: this.langList}];
   navBarList = [this.faPowerOff, this.faLanguage];
+  isTimeValid = true;
 
   constructor(private translate: TranslateService, private router: Router, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
@@ -71,6 +72,8 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.arriveTime = new Date(Date.now());
+    this.arriveTime.setMinutes(this.arriveTime.getMinutes() + 2);
     this._getUserInfo();
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterAllSearchList = this.allSearch.valueChanges.pipe(
@@ -134,13 +137,14 @@ export class HomeComponent implements OnInit {
       slotId: this.userInfo.slotId,
       userName: this.userInfo.email
     };
+    const selectedP = this.packageList.filter(p => p.value === Number(this.userInfo.status.slice(6)));
     const d = {
       partnerCode: 'MOMO',
       accessKey: 'F8BBA842ECF85',
       requestId: 'UIT' + date,
-      amount: this.selectedPackage.cost,
+      amount: selectedP[0].cost,
       orderId: 'UIT' + date,
-      orderInfo: this.selectedPackage.name,
+      orderInfo: selectedP[0].name,
       returnUrl: this.domain,
       notifyUrl: this.domain +'/api/save-user-pressed',
       requestType: 'captureMoMoWallet',
@@ -216,6 +220,7 @@ export class HomeComponent implements OnInit {
     const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
     const readyParkTime = new Date(this.arriveTime);
+    this.isTimeValid = this.arriveTime > new Date(Date.now());
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const params = {
       stationId: index,
