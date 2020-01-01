@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 const parkingSlotSchema = new Schema({
         _id: Number,
         stationAddress: String,
+        capacity: Number,
         slots: [
             {
                 _id: Number,

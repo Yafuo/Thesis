@@ -11,4 +11,6 @@ export class AuthService {
   isLoggedIn() {
     return this.cookieService.check('token');
   }
+  isAdmin() {
+  }
 }

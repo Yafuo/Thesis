@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var ParkingSlot = require('../models/parkingSlot');
+var UserPressed = require('../models/userPressed');
 var {isLoggedIn} = require('../custom_lib/authenticate');
 var {hash, compare} = require('../custom_lib/bcrypt');
 var {verify, sign} = require('../custom_lib/jwt');
@@ -85,15 +86,53 @@ router.post('/receive-notify', (req, res, next) => {
     req.app.io.emit('news', {billMsg: d.message, billCode: d.errorCode});
     res.json(d);
 });
+router.get('/get-user-pressed', (req, res, next) => {
+    UserPressed.find().then(r => {
+        res.json(r);
+        return;
+    }).catch(err => {
+        console.log(err);
+    });
+});
+router.post('/save-user-pressed', (req, res, next) => {
+    if (req.body.errorCode !== '0') return;
+    const extraData = req.body.extraData.split('-');
+    UserPressed.findOne({_id: Number(extraData[0])}).then(r => {
+        if (!r) {
+            res.json({result: 'CONTROL_FAILED'});
+            return;
+        }
+        var pressedList = r.pressedList;
+        const userPressed = {
+            slotId: Number(extraData[1]),
+            userName: extraData[2]
+        };
+        pressedList.push(userPressed);
+        UserPressed.updateOne({_id: Number(extraData[0])}, {$set: {pressedList: pressedList}}).then(r => {
+            if (!r) {
+                res.json({result: 'CONTROL_FAILED'});
+                return;
+            }
+            User.updateOne({email: userPressed.userName}, {$set: {status: 'paid'}}).then(r => {
+                if (!r) {
+                    res.json({result: 'CONTROL_FAILED'});
+                    return;
+                }
+                req.app.io.emit('user-status', {status: 'paid'});
+                res.json({result: 'CONTROL_SUCCESSFUL'});
+            }).catch(err => {
+                console.log(err);
+            });
+        }).catch(err => {
+            console.log(err);
+        });
+    }).catch(err => {
+        console.log(err);
+    });
+});
 router.post('/get-available-slot', (req, res, next) => {
-    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$sort: {'slots.future.startTime': 1}}, {$group: {_id: '$slots._id',futures: {'$push': '$slots.future'}}}, {$project: {_id: '$_id', future: '$futures' ,total: {$size: '$futures'}}}, {$sort: {total: 1}}])
+    ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: req.body.stationId}}, {$sort: {'slots.future.startTime': 1}}, {$group: {_id: '$slots._id', futures: {'$push': '$slots.future'}}}, {$project: {_id: '$_id', future: '$futures' ,total: {$size: '$futures'}}}, {$sort: {total: 1}}])
         .then(r => {
-            // console.log(r);
-            // r.forEach(s => {
-            //     s.future.forEach(d => {
-            //         console.log(d.startTime.toLocaleString());
-            //     });
-            // });
             if (r.length != 4) {
                 res.json({result: 'SLOT_AVAILABLE'});
                 return;
@@ -169,7 +208,12 @@ router.post('/extending', (req, res, next) => {
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$match: {_id: Number(extraData[0])}}, {$sort: {'slots._id': 1}}, {$group: {_id: '$_id', slots: {'$push': '$slots'}}}])
         .then(r => {
             var info = r[0].slots;
-            var futures = info[slotId-1].future;
+            var futures = [];
+            if (info.length === Number(extraData[5])) {
+                futures = info[slotId-1].future;
+            } else {
+                futures = info[info.map(s => {return s._id}).indexOf(slotId)];
+            }
             for (var i = 0; i< futures.length; i++) {
                 const email = futures[i].userName;
                 if (extraData[2] === email) {
@@ -181,7 +225,14 @@ router.post('/extending', (req, res, next) => {
                         flag = true;
                         break;
                     } else {
-                        if (newEndTime < futures[i+1].endTime) {
+                        if (futures[i+1]) {
+                            if (newEndTime < futures[i+1].endTime) {
+                                futures[i].endTime = newEndTime;
+                                futures[i].package += Number(extraData[3]);
+                                flag = true;
+                                break;
+                            }
+                        } else {
                             futures[i].endTime = newEndTime;
                             futures[i].package += Number(extraData[3]);
                             flag = true;
@@ -331,11 +382,8 @@ router.post('/booking', (req, res, next) => {
                     });
                 }
             } else {
-                for (let i = 0; i < slot.length; i++) {
-                    if (slot[i] + 1 != slot[i + 1]) {
-                        index = slot[i] + 1;
-                        break;
-                    }
+                while (slot.indexOf(index) > -1) {
+                    index++;
                 }
                 const d = {
                     _id: index,

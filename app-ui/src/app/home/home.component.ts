@@ -19,6 +19,7 @@ import {Router} from "@angular/router";
 })
 export class HomeComponent implements OnInit {
 
+  domain = 'http://f703816a.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -112,10 +113,12 @@ export class HomeComponent implements OnInit {
       console.log(news);
       this.qrUrl = '';
       this.newsObj = news;
+      this.selectedPackage = {name: '', cost: '', value: 0};
     });
     this.socket.on('user-status', (json: any) => {
       console.log(json);
       this.userInfo.status = json.status;
+      this.selectedPackage = {name: '', cost: '', value: 0};
       if (this.userInfo.status === 'staked') this._getUserInfo();
     });
   }
@@ -125,7 +128,37 @@ export class HomeComponent implements OnInit {
   }
 
   private _park() {
-
+    let date = Date.now().toString(10);
+    const params = {
+      stationId: this.userInfo.stationId,
+      slotId: this.userInfo.slotId,
+      userName: this.userInfo.email
+    };
+    const d = {
+      partnerCode: 'MOMO',
+      accessKey: 'F8BBA842ECF85',
+      requestId: 'UIT' + date,
+      amount: this.selectedPackage.cost,
+      orderId: 'UIT' + date,
+      orderInfo: this.selectedPackage.name,
+      returnUrl: this.domain,
+      notifyUrl: this.domain +'/api/save-user-pressed',
+      requestType: 'captureMoMoWallet',
+      extraData: `${params.stationId}-${params.slotId}-${params.userName}`,
+      signature: ''
+    };
+    var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
+    var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
+    var signature = CryptoJS.HmacSHA256(data, secretKey);
+    d.signature = signature.toString();
+    this.http.post<any>('https://test-payment.momo.vn/gw_payment/transactionProcessor', JSON.stringify(d)).subscribe(r => {
+      console.log(r);
+      const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
+      this.qrUrl = prefix + r.qrCodeUrl.slice(42);
+    });
+    // this.http.post('/api/save-user-pressed', params).subscribe(r => {
+    //   console.log(r);
+    // });
   }
 
   private _cancel() {
@@ -157,8 +190,8 @@ export class HomeComponent implements OnInit {
       amount: (Number(this.selectedPackage.cost) * 2).toString(10),
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://b7345aba.ngrok.io',
-      notifyUrl: 'http://b7345aba.ngrok.io/api/extending',
+      returnUrl: this.domain,
+      notifyUrl: this.domain + '/api/extending',
       requestType: 'captureMoMoWallet',
       extraData: `${params.stationId}-${params.slotId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
       signature: ''
@@ -211,8 +244,8 @@ export class HomeComponent implements OnInit {
       amount: this.selectedPackage.cost,
       orderId: 'UIT' + date,
       orderInfo: this.selectedPackage.name,
-      returnUrl: 'http://b7345aba.ngrok.io',
-      notifyUrl: 'http://b7345aba.ngrok.io/api/booking',
+      returnUrl: this.domain,
+      notifyUrl: this.domain + '/api/booking',
       requestType: 'captureMoMoWallet',
       extraData: `${index}-${this.userInfo.userId}-${this.userInfo.email}-${startTime}-${this.selectedPackage.value}-${new Date(readyParkTime).toLocaleString('en-US')}`,
       signature: ''

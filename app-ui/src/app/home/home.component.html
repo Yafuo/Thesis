@@ -28,17 +28,24 @@
 
       </div>
       <div *ngIf="isShowResult && !isFilterClicked" class="wrap-result row align-items-center">
-        <div class="col-4">
+<!--        <div *ngIf="true" class="wrap-result row align-items-center">-->
+        <div class="col-1"></div>
+        <div class="col-10">
+          <fieldset *ngIf="isAvailable" class="p-2" style="border: 1px #28a745 solid">
+            <legend class="w-auto"><span class="badge badge-success">{{'Result' | translate}}</span></legend>
+            <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
+            <span class="{{'text-success'}}">{{'Available' | translate}}</span>
+            <button [disabled]="qrUrl || userInfo.status != 'none'" (click)="_book()" class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
+          </fieldset>
+          <fieldset *ngIf="!isAvailable" class="p-2" style="border: 1px #dc3545 solid">
+            <legend class="w-auto"><span class="badge badge-danger">{{'Result' | translate}}</span></legend>
+            <fa-icon [icon]="faTimesCircle" [styles]="{'color': 'red'}"></fa-icon>
+            <span class="text-danger">{{'Not Available' | translate}}</span>
+            <button disabled class="btn btn-sm btn-primary float-right">{{'Booking' | translate}}</button>
+          </fieldset>
         </div>
-        <div class="col-4">
-          <fa-icon *ngIf="isAvailable" [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
-          <fa-icon *ngIf="!isAvailable" [icon]="faTimesCircle" [styles]="{'color': 'red'}"></fa-icon>
-          <span class="text-success">{{isAvailable ? 'Available' : 'Not Available' | translate}}</span>
-        </div>
-        <owl-date-time pickerType="timer" #ultiTime></owl-date-time>
-        <div class="col-4">
-          <button [disabled]="qrUrl || userInfo.status != 'none'" (click)="_book()" class="btn btn-sm btn-primary">{{'Booking' | translate}}</button>
-        </div>
+        <div class="col-1"></div>
+<!--        <owl-date-time pickerType="timer" #ultiTime></owl-date-time>-->
       </div>
       <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto">
         <img src="{{qrUrl}}" style="width: 50vw">
@@ -113,21 +120,21 @@
         </div>
       </div>
       <div *ngIf="userInfo.status === 'staked'" class="wrap-feature-btn row">
-        <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
-          <button [disabled]="userInfo.status === 'paid'" class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
+        <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
+          <button [disabled]="userInfo.status === 'paid'" (click)="_park()" class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
         </div>
-        <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
+        <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
           <button class="btn btn-sm btn-warning w-100" (click)="toggleExtend()">{{'Extend' | translate}}</button>
         </div>
-        <div class="col-12 col-md-6 text-center" style="padding: 0 40px">
+        <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
           <button class="btn btn-sm btn-danger w-100" (click)="_cancel()">{{'Cancel' | translate}}</button>
         </div>
-        <div class="package-choice hide-this-{{!extend}}">
+        <div class="col-12 package-choice hide-this-{{!extend}}" style="padding: 0 40px">
           <mat-accordion [hideToggle]="true">
             <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
               <mat-expansion-panel-header style="font-size: 14px" class="row">
                 <mat-panel-title class="col-2 col-sm-2 p-0">
-                  <button class="btn btn-sm btn-primary btn-extend" (click)="_extend()">{{'Done' | translate}}</button>
+                  <button [disabled]="!selectedPackage.name" class="btn btn-sm btn-primary btn-extend" (click)="_extend()">{{'Done' | translate}}</button>
                 </mat-panel-title>
                 <mat-panel-description class="col-8 col-sm-8 p-0 mr-0">
                   <span>{{'Please click Done when finish' | translate}}</span>
