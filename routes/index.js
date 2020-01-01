@@ -87,9 +87,14 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.get('/get-user-pressed', (req, res, next) => {
-    UserPressed.find().then(r => {
-        res.json(r);
-        return;
+    const stationId = req.query.stationId;
+    UserPressed.aggregate([{$match: {_id: Number(stationId)}}, {$project: {_id: 0, list: '$pressedList'}}])
+        .then(r => {
+            var list = [];
+            r[0].list.forEach(s => {
+                list.push(s.slotId);
+            });
+            res.json({list: list});
     }).catch(err => {
         console.log(err);
     });
