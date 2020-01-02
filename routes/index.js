@@ -92,9 +92,13 @@ router.get('/get-user-pressed', (req, res, next) => {
         .then(r => {
             var list = [];
             r[0].list.forEach(s => {
-                list.push(s.slotId);
+                var u = {
+                    slotId: s.slotId,
+                    status: s.status
+                }
+                list.push(u);
             });
-            res.json({list: list});
+            res.json(list);
     }).catch(err => {
         console.log(err);
     });

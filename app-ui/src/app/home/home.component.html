@@ -120,6 +120,11 @@
           </div>
         </div>
       </div>
+      <div *ngIf="userInfo.status.indexOf('paid') > -1" class="wrap-get-car-btn row">
+        <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
+          <button class="btn btn-sm btn-primary w-100" (click)="_getCar()">{{'Get car' | translate}}</button>
+        </div>
+      </div>
       <div *ngIf="userInfo.status.indexOf('staked') > -1" class="wrap-feature-btn row">
         <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
           <button [disabled]="userInfo.status === 'paid'" (click)="_park()" class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>

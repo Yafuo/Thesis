@@ -19,7 +19,7 @@ import {Router} from "@angular/router";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://461292c9.ngrok.io';
+  domain = 'http://3fd463f0.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -122,13 +122,16 @@ export class HomeComponent implements OnInit {
       console.log(json);
       this.userInfo.status = json.status;
       this.selectedPackage = {name: '', cost: '', value: 0};
-      if (this.userInfo.status === 'staked') this._getUserInfo();
+      this.qrUrl = '';
+      if (this.userInfo.status.indexOf('staked') > -1) this._getUserInfo();
     });
   }
 
   toggleExtend() {
     this.extend = !this.extend;
   }
+
+  private _getCar() {}
 
   private _park() {
     let date = Date.now().toString(10);
