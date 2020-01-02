@@ -1,5 +1,5 @@
 import {Component, OnInit, Renderer2, ViewEncapsulation} from '@angular/core';
-import {faCheckCircle, faTimesCircle,faUserPlus, faLanguage, faChevronLeft, faBars, faPowerOff} from "@fortawesome/free-solid-svg-icons";
+import {faCheckCircle, faTimesCircle,faUserPlus, faLanguage, faChevronLeft, faBars, faPowerOff, faSyncAlt} from "@fortawesome/free-solid-svg-icons";
 import {TranslateService} from "@ngx-translate/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
@@ -10,6 +10,8 @@ import * as io from 'socket.io-client';
 import {CookieService} from "ngx-cookie-service";
 import {EventBusService} from "../common/service/event-bus.service";
 import {Router} from "@angular/router";
+import Map from "ol/Map";
+import {getDistance} from "ol/sphere";
 
 @Component({
   selector: 'app-home',
@@ -19,7 +21,7 @@ import {Router} from "@angular/router";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://3fd463f0.ngrok.io';
+  domain = 'http://915842b9.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -27,9 +29,11 @@ export class HomeComponent implements OnInit {
   faTimesCircle = faTimesCircle;
   faUserPlus = faUserPlus;
   faLanguage = faLanguage;
+  faSyncAlt = faSyncAlt;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
   parkingStationList = ['10 Ho Dac Di, P.Tay Thanh, Q.Tan Phu', '22/44 CMT8, P.2, Q.Tan Binh',
     '49a Phan Dang Luu, P.7, Q.Phu Nhuan', '96 Le Quang Dinh, P.14, Q.Binh Thanh'];
+  parkingStationTitude = [{latit: 10.8020184, longtit: 106.6645121}, {latit: 17.8020184, longtit: 85.6645121}, {latit: 33.8020184, longtit: 56.6645121}, {latit: 18, longtit: 10}];
   userLocation = ['60/22 Dong Den, P.14, Q.Tan Binh', '199 Truong Dinh, P.5, Q.3',
     '70 Hoang Van Thu, P.10, Q.Phu Nhuan', '67 Ly Thuong Kiet, P.3, Q.Tan Binh'];
   selectedParkingStation = '';
@@ -65,6 +69,11 @@ export class HomeComponent implements OnInit {
   list = [{opt: 'Log out', details: []}, {opt: 'Language', details: this.langList}];
   navBarList = [this.faPowerOff, this.faLanguage];
   isTimeValid = true;
+  latitude = 0;
+  longitude = 0;
+  map: Map;
+  url= 'https://nominatim.openstreetmap.org/search?q=1%20truong%20chinh%20phuong%20tay%20thanh%20quan%20tan%20phu&format=json&polygon=1&addressdetails=1';
+  geoReverseService = 'https://nominatim.openstreetmap.org/reverse?key=iTzWSiYpGxDvhATNtSrqx5gDcnMOkntL&format=json&addressdetails=1&lat={lat}&lon={lon}';
 
   constructor(private translate: TranslateService, private router: Router, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
@@ -75,6 +84,7 @@ export class HomeComponent implements OnInit {
     this.arriveTime = new Date(Date.now());
     this.arriveTime.setMinutes(this.arriveTime.getMinutes() + 2);
     this._getUserInfo();
+    this._getLocation();
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterAllSearchList = this.allSearch.valueChanges.pipe(
       startWith(''),
@@ -131,7 +141,37 @@ export class HomeComponent implements OnInit {
     this.extend = !this.extend;
   }
 
-  private _getCar() {}
+  private _checkLocation() {
+    const coords = this.parkingStationTitude[this.userInfo.stationId - 1];
+    if (Math.abs(this.latitude - coords.latit) < 5 && Math.abs(this.longitude - coords.longtit) < 5) {
+      return true;
+    }
+    return false;
+  }
+
+  private _getLocation() {
+    navigator.geolocation.getCurrentPosition(pos => {
+      this.latitude = pos.coords.latitude;
+      this.longitude = pos.coords.longitude;
+    })
+  }
+
+  private _getCar() {
+    const params = {
+      stationId: this.userInfo.stationId,
+      slotId: this.userInfo.slotId,
+      userName: this.userInfo.email,
+    };
+    const errorCode = '0';
+    const extraData = `${params.stationId}-${params.slotId}-${params.userName}-G`;
+    const lastParams = {
+      errorCode: errorCode,
+      extraData: extraData
+    }
+    this.http.post('/api/save-user-pressed', lastParams).subscribe(r => {
+      console.log(r);
+    });
+  }
 
   private _park() {
     let date = Date.now().toString(10);
@@ -151,7 +191,7 @@ export class HomeComponent implements OnInit {
       returnUrl: this.domain,
       notifyUrl: this.domain +'/api/save-user-pressed',
       requestType: 'captureMoMoWallet',
-      extraData: `${params.stationId}-${params.slotId}-${params.userName}`,
+      extraData: `${params.stationId}-${params.slotId}-${params.userName}-P`,
       signature: ''
     };
     var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
@@ -163,9 +203,6 @@ export class HomeComponent implements OnInit {
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
     });
-    // this.http.post('/api/save-user-pressed', params).subscribe(r => {
-    //   console.log(r);
-    // });
   }
 
   private _cancel() {
@@ -212,9 +249,6 @@ export class HomeComponent implements OnInit {
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
     });
-    // this.http.post('/api/extending', params).subscribe(r => {
-    //
-    // });
   }
 
   filter() {
@@ -232,7 +266,6 @@ export class HomeComponent implements OnInit {
       email: this.userInfo.email,
       userId: this.userInfo.userId
     };
-    console.log(params);
     this.http.post<any>('/api/get-available-slot', params).subscribe(r => {
       this.isShowResult = true;
       this.isAvailable = r.result.indexOf('SLOT_NOT_AVAILABLE') < 0;

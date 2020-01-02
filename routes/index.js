@@ -90,11 +90,15 @@ router.get('/get-user-pressed', (req, res, next) => {
     const stationId = req.query.stationId;
     UserPressed.aggregate([{$match: {_id: Number(stationId)}}, {$project: {_id: 0, list: '$pressedList'}}])
         .then(r => {
+            if (r.length === 0) {
+                res.json([]);
+                return;
+            }
             var list = [];
             r[0].list.forEach(s => {
                 var u = {
                     slotId: s.slotId,
-                    status: s.status
+                    control: s.control
                 }
                 list.push(u);
             });
@@ -111,6 +115,7 @@ router.post('/save-user-pressed', (req, res, next) => {
             var pressedList = [];
             const userPressed = {
                 _id: 1,
+                control: extraData[3],
                 slotId: Number(extraData[1]),
                 userName: extraData[2]
             };
@@ -142,6 +147,7 @@ router.post('/save-user-pressed', (req, res, next) => {
         var pressedList = r.pressedList;
         const userPressed = {
             _id: pressedList[pressedList.length-1]._id + 1,
+            control: extraData[3],
             slotId: Number(extraData[1]),
             userName: extraData[2]
         };
