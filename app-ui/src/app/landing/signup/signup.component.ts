@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {faBars, faArrowLeft, faChevronLeft,faSignInAlt,faLanguage} from "@fortawesome/free-solid-svg-icons";
+import {faBars, faArrowLeft, faChevronLeft,faSignInAlt,faLanguage, faCheckCircle, faTimesCircle} from "@fortawesome/free-solid-svg-icons";
 import {faGithub} from "@fortawesome/free-brands-svg-icons";
 import {HttpClient} from "@angular/common/http";
 import {Router} from "@angular/router";
@@ -20,11 +20,14 @@ export class SignupComponent implements OnInit {
   faChevronLeft = faChevronLeft;
   faSignInAlt = faSignInAlt;
   faLanguage = faLanguage;
+  faCheckCircle = faCheckCircle;
+  faTimesCircle = faTimesCircle;
   navBarList = [this.faSignInAlt, this.faLanguage];
   selectedLang = '';
   langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
   list = [{opt: 'Sign in', details: []}, {opt: 'Language', details: this.langList}];
   user = new User('', '', '');
+  isSignUp = 'none';
   constructor(private http: HttpClient, private translate: TranslateService, private router: Router, private spinner: NgxSpinnerService, private cookieService: CookieService) { }
 
   ngOnInit() {
@@ -45,8 +48,8 @@ export class SignupComponent implements OnInit {
       password: this.user.password,
       lang: this.selectedLang ? this.selectedLang : 'vn'
     };
-    this.http.post('/api/signup', params).subscribe(r => {
-      console.log(r);
+    this.http.post<any>('/api/signup', params).subscribe(r => {
+      this.isSignUp = r.result;
     }, err => {
       console.log(err);
     });

@@ -470,29 +470,37 @@ router.post('/reset-password', (req, res, next) => {
     var secretKey = '1234qwer';
     var encryptEmail = crypto.AES.encrypt(email, secretKey);
     var encryptUrl = `http://localhost:4200/landing/password_reset?email=${encryptEmail}`;
-    var transporter = nodeMailer.createTransport({
-        service: 'Gmail',
-        port: 465,
-        secure: true,
-        auth: {
-            user: 'uit.smartparking@gmail.com',
-            pass: '1234!@#$'
-        }
-    });
-    let mailOptions = {
-        from: '"Smart Parking System" uit.smartparking@gmail.com',
-        to: req.body.receiverMail,
-        subject: 'Reset your password',
-        text: 'Just do it',
-        html: `${req.body.plainContent}\n<a href="${encryptUrl}">${encryptUrl}</a>`
-    };
-    transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            res.status(503).json({result: 'NODEMAILER_SERVICE_FAILED'});
+    User.findOne({email: email}).then(r => {
+        if (!r) {
+            res.json({result: 'NOT_SIGNUP_YET'});
             return;
         }
-        // res.json({result: info.response});
-        res.json({result: 'SENT_SUCCESS'});
+        var transporter = nodeMailer.createTransport({
+            service: 'Gmail',
+            port: 465,
+            secure: true,
+            auth: {
+                user: 'uit.smartparking@gmail.com',
+                pass: '1234!@#$'
+            }
+        });
+        let mailOptions = {
+            from: '"Smart Parking System" uit.smartparking@gmail.com',
+            to: req.body.receiverMail,
+            subject: 'Reset your password',
+            text: 'Just do it',
+            html: `${req.body.plainContent}\n<a href="${encryptUrl}">${encryptUrl}</a>`
+        };
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                res.status(503).json({result: 'NODEMAILER_SERVICE_FAILED'});
+                return;
+            }
+            // res.json({result: info.response});
+            res.json({result: 'SENT_SUCCESS'});
+        });
+    }).catch(err => {
+        console.log(err);
     });
 });
 router.post('/reset-for', (req, res, next) => {
@@ -512,7 +520,7 @@ router.post('/reset-for', (req, res, next) => {
         });
         User.findOneAndUpdate({email: decryptedEmail}, {password: user.password}).then(updatedUser => {
             if (!updatedUser) {
-                res.json({result: 'NOT_SIGNUP_YET'});
+                res.json({result: 'USER_NOT_FOUND'});
                 return;
             }
             res.json({result: 'PASSWORD_CHANGED_SUCCESS'});

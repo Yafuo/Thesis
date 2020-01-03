@@ -4,6 +4,7 @@ import {
   faBars,
   faArrowLeft,
   faCheckCircle,
+  faTimesCircle,
   faUserPlus,
   faSignInAlt,
   faPowerOff
@@ -27,14 +28,15 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   faArrowLeft = faArrowLeft;
   faGithub = faGithub;
   faCheckCircle = faCheckCircle;
+  faTimesCircle = faTimesCircle;
   faUserPlus = faUserPlus;
   faSignInAlt = faSignInAlt;
   mail= '';
   encryptedEmail = '';
   password = '';
   isKnownEmail = false;
-  isSent= false;
-  isChanged=  false;
+  isSent= 'none';
+  isChanged=  'none';
   navBarList = [this.faUserPlus, this.faSignInAlt];
   selectedLang = '';
   langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
@@ -72,7 +74,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       // r is Object.
       // So we need to convert it to type any.
       const json = r as any;
-      this.isSent = json.result.indexOf('SENT_SUCCESS') > -1;
+      this.isSent = json.result;
     });
   }
 
@@ -86,7 +88,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       // r is Object.
       // So we need to convert it to type any.
       const json = r as any;
-      this.isChanged = json.result.indexOf('PASSWORD_CHANGED_SUCCESS')> -1;
+      this.isChanged = json.result;
     });
   }
 

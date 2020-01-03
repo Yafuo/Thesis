@@ -21,7 +21,7 @@ import {getDistance} from "ol/sphere";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://915842b9.ngrok.io';
+  domain = 'http://c7f54e36.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -102,6 +102,15 @@ export class HomeComponent implements OnInit {
 
   private _setLang(lang: string) {
     this.translate.setDefaultLang(lang);
+  }
+
+  private _getUserLocation(event) {
+    // event = event + 'thanh pho ho chi minh';
+    if (event.indexOf('phuong') < 0) return;
+    let u= `https://nominatim.openstreetmap.org/search?q=${event}&format=json&polygon=1&addressdetails=1`;
+    this.http.get(u).subscribe(r => {
+      console.log(r);
+    })
   }
 
   navTo(i: number) {
@@ -253,11 +262,11 @@ export class HomeComponent implements OnInit {
 
   filter() {
     this.toggleFilter();
+    this.isTimeValid = this.arriveTime > new Date(Date.now());
     this.selectedParkingStation = this.parkingStationControl.value;
     const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
     const readyParkTime = new Date(this.arriveTime);
-    this.isTimeValid = this.arriveTime > new Date(Date.now());
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const params = {
       stationId: index,

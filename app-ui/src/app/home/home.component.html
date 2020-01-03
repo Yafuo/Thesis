@@ -34,9 +34,12 @@
           <fieldset *ngIf="isAvailable" class="p-2" style="border: 1px #28a745 solid">
             <legend class="w-auto"><span class="badge badge-success">{{'Result' | translate}}</span></legend>
             <p *ngIf="userInfo.status === 'none' && !isTimeValid" class="badge badge-danger">{{'This time has passed. Please choose another time!'}}</p>
-            <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
-            <span class="{{'text-success'}}">{{'Available' | translate}}</span>
-            <button [disabled]="qrUrl || userInfo.status != 'none' || !isTimeValid" (click)="_book()" class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
+            <p *ngIf="userInfo.status !== 'none' && !isTimeValid" class="badge badge-danger">{{'This time has passed & You\'ve already booked'}}</p>
+            <p>
+              <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
+              <span class="{{'text-success'}}">{{'Available' | translate}}</span>
+              <button [disabled]="qrUrl || userInfo.status != 'none' || !isTimeValid" (click)="_book()" class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
+            </p>
           </fieldset>
           <fieldset *ngIf="!isAvailable" class="p-2" style="border: 1px #dc3545 solid">
             <legend class="w-auto"><span class="badge badge-danger">{{'Result' | translate}}</span></legend>
@@ -66,13 +69,14 @@
         <div class="abc row mr-0">
           <mat-form-field class="pl-4 col-8">
             <mat-icon [inline]="true" class="search-fn" matPrefix>location_on</mat-icon>
-            <input matInput type="text" placeholder=" {{'Choose start location' | translate}}" [formControl]="userLocationControl"
+            <input matInput type="text" placeholder=" {{'Choose start location' | translate}}" (ngModelChange)="_getUserLocation($event)" [formControl]="userLocationControl"
                    [matAutocomplete]="startLocation">
             <mat-autocomplete autoActiveFirstOption #startLocation="matAutocomplete">
               <mat-option *ngFor="let add of filterUserLocationList | async" [value]="add">
                 <span style="font-size: 14px">{{add}}</span>
               </mat-option>
             </mat-autocomplete>
+
           </mat-form-field>
           <div class="pl-0 col-4 d-flex align-items-center">
             <mat-checkbox style="font-size: small" [(ngModel)]="isCurrentLocationChecked" (click)="_getLocation()">{{'Your location' | translate}}</mat-checkbox>

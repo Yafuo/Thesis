@@ -10,6 +10,6 @@ export class AppComponent {
   title = 'app-ui';
 
   constructor(private translate: TranslateService) {
-    // translate.setDefaultLang('vn');
+    translate.setDefaultLang('vn');
   }
 }
