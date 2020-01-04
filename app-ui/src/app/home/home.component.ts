@@ -10,7 +10,6 @@ import * as io from 'socket.io-client';
 import {CookieService} from "ngx-cookie-service";
 import {EventBusService} from "../common/service/event-bus.service";
 import {Router} from "@angular/router";
-import Map from "ol/Map";
 import {getDistance} from "ol/sphere";
 
 @Component({
@@ -21,7 +20,7 @@ import {getDistance} from "ol/sphere";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://c7f54e36.ngrok.io';
+  domain = 'http://ef04799d.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -31,11 +30,11 @@ export class HomeComponent implements OnInit {
   faLanguage = faLanguage;
   faSyncAlt = faSyncAlt;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
-  parkingStationList = ['10 Ho Dac Di, P.Tay Thanh, Q.Tan Phu', '22/44 CMT8, P.2, Q.Tan Binh',
+  parkingStationList = ['Bệnh viện Thống Nhất, Q.Tân Bình', '22/44 CMT8, P.2, Q.Tan Binh',
     '49a Phan Dang Luu, P.7, Q.Phu Nhuan', '96 Le Quang Dinh, P.14, Q.Binh Thanh'];
-  parkingStationTitude = [{latit: 10.8020184, longtit: 106.6645121}, {latit: 17.8020184, longtit: 85.6645121}, {latit: 33.8020184, longtit: 56.6645121}, {latit: 18, longtit: 10}];
-  userLocation = ['60/22 Dong Den, P.14, Q.Tan Binh', '199 Truong Dinh, P.5, Q.3',
-    '70 Hoang Van Thu, P.10, Q.Phu Nhuan', '67 Ly Thuong Kiet, P.3, Q.Tan Binh'];
+  parkingStationTitude = [{lat: 10.7917131, lon: 106.653557973005}, {lat: 17.8020184, lon: 85.6645121}
+  , {lat: 33.8020184, lon: 56.6645121}, {lat: 18, lon: 10}];
+  userLocation = [];
   selectedParkingStation = '';
   selectedUserLocation = '';
   userLocationControl = new FormControl();
@@ -51,7 +50,6 @@ export class HomeComponent implements OnInit {
     value: 24
   }];
   selectedPackage = {name: '', cost: '', value: 0};
-  height = '';
   state = 'down';
   arriveTime: Date;
   leaveHomeTime = new Date(Date.now());
@@ -66,13 +64,12 @@ export class HomeComponent implements OnInit {
   endTime = '';
   selectedLang = '';
   langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
-  list = [{opt: 'Log out', details: []}, {opt: 'Language', details: this.langList}];
-  navBarList = [this.faPowerOff, this.faLanguage];
+  list = [{opt: 'Log out', details: [], icon: this.faPowerOff}, {opt: 'Language', details: this.langList, icon: this.faLanguage}];
   isTimeValid = true;
-  latitude = 0;
-  longitude = 0;
-  map: Map;
-  url= 'https://nominatim.openstreetmap.org/search?q=1%20truong%20chinh%20phuong%20tay%20thanh%20quan%20tan%20phu&format=json&polygon=1&addressdetails=1';
+  //Maps API
+  userCoor = {lat: 0, lon: 0};
+  startCoor = {lat: 0, lon: 0};
+  startCoorList = [];
   geoReverseService = 'https://nominatim.openstreetmap.org/reverse?key=iTzWSiYpGxDvhATNtSrqx5gDcnMOkntL&format=json&addressdetails=1&lat={lat}&lon={lon}';
 
   constructor(private translate: TranslateService, private router: Router, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
@@ -81,8 +78,6 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.arriveTime = new Date(Date.now());
-    this.arriveTime.setMinutes(this.arriveTime.getMinutes() + 2);
     this._getUserInfo();
     this._getLocation();
     this.districtList = this.districtList.map(d => this._getTranslation(d));
@@ -90,14 +85,35 @@ export class HomeComponent implements OnInit {
       startWith(''),
       map(value => this._filter(value, 1))
     );
-    this.filterUserLocationList = this.userLocationControl.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value, 2))
-    );
+    // this.filterUserLocationList = this.userLocationControl.valueChanges.pipe(
+    //   startWith(''),
+    //   map(value => this._filter(value, 2))
+    // );
     this.filterparkingStationList = this.parkingStationControl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value, 3))
     );
+  }
+
+  private _calArriveTime() {
+    if (!this.userLocationControl.value || !this.parkingStationControl.value) return;
+    const index = this.userLocation.indexOf(this.userLocationControl.value);
+    const startPoint = this.startCoorList[index];
+    const endPoint = this.parkingStationTitude[this.parkingStationList.indexOf(this.parkingStationControl.value)];
+    let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
+    console.log(u);
+    this.http.get<any>(u).subscribe(r => {
+      console.log(r);
+      const dur = r.routes[0].duration;
+      let temp = new Date(this.leaveHomeTime);
+      if (dur >= 3600) {
+        temp.setHours(temp.getHours()+dur/3600, temp.getMinutes()+dur%3600);
+        this.arriveTime = temp;
+      } else {
+        temp.setMinutes(temp.getMinutes()+dur/60, temp.getSeconds()+dur%60);
+        this.arriveTime = temp;
+      }
+    });
   }
 
   private _setLang(lang: string) {
@@ -108,9 +124,20 @@ export class HomeComponent implements OnInit {
     // event = event + 'thanh pho ho chi minh';
     if (event.indexOf('phuong') < 0) return;
     let u= `https://nominatim.openstreetmap.org/search?q=${event}&format=json&polygon=1&addressdetails=1`;
-    this.http.get(u).subscribe(r => {
+    this.http.get<any>(u).subscribe(r => {
       console.log(r);
-    })
+      this.userLocation = [];
+      r.forEach(lo => {
+        if (lo.display_name.indexOf('Ho Chi Minh City') > -1) {
+          this.startCoorList.push({lat: lo.lat, lon: lo.lon});
+          this.userLocation.push(lo.display_name);
+        }
+      });
+      this.filterUserLocationList = this.userLocationControl.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filter(value, 2))
+      );
+    });
   }
 
   navTo(i: number) {
@@ -152,7 +179,7 @@ export class HomeComponent implements OnInit {
 
   private _checkLocation() {
     const coords = this.parkingStationTitude[this.userInfo.stationId - 1];
-    if (Math.abs(this.latitude - coords.latit) < 5 && Math.abs(this.longitude - coords.longtit) < 5) {
+    if (Math.abs(this.userCoor.lat - coords.lat) < 5 && Math.abs(this.userCoor.lon - coords.lon) < 5) {
       return true;
     }
     return false;
@@ -160,8 +187,8 @@ export class HomeComponent implements OnInit {
 
   private _getLocation() {
     navigator.geolocation.getCurrentPosition(pos => {
-      this.latitude = pos.coords.latitude;
-      this.longitude = pos.coords.longitude;
+      this.userCoor.lat = pos.coords.latitude;
+      this.userCoor.lon = pos.coords.longitude;
     })
   }
 
@@ -261,12 +288,13 @@ export class HomeComponent implements OnInit {
   }
 
   filter() {
+    console.log(this.userLocationControl.value);
     this.toggleFilter();
     this.isTimeValid = this.arriveTime > new Date(Date.now());
     this.selectedParkingStation = this.parkingStationControl.value;
     const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
-    const readyParkTime = new Date(this.arriveTime);
+    let readyParkTime = new Date(this.arriveTime);
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const params = {
       stationId: index,

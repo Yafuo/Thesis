@@ -3,7 +3,7 @@
     <mat-sidenav class="bg-dark" #sidenav>
       <fa-icon (click)="sidenav.close()" [icon]="faChevronLeft" size="2x" [styles]="{'color': 'white'}"></fa-icon>
       <div class="sidenav-opt text-white" (click)="navTo(i)" *ngFor="let l of list; index as i">
-        <fa-icon [icon]="navBarList[i]"></fa-icon>
+        <fa-icon [icon]="l.icon"></fa-icon>
         {{l.opt| translate}}
         <div (click)="_setLang(d.code)" class="sidenav-opt-details text-white" *ngFor="let d of l.details">
           {{d.name | translate}}
@@ -18,7 +18,7 @@
           <mat-icon class="search-fn" matSuffix>search</mat-icon>
           <mat-autocomplete autoActiveFirstOption #all="matAutocomplete">
             <mat-option *ngFor="let d of filterAllSearchList | async" [value]="d">
-              {{d}}
+              {{d | translate}}
             </mat-option>
           </mat-autocomplete>
         </mat-form-field>
@@ -53,7 +53,6 @@
       <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto">
         <img src="{{qrUrl}}" style="width: 50vw">
       </div>
-      <div id="map" style="width: 100%; height: 400px"></div>
       <div class="wrap-filter hide-this-{{!isFilterClicked}}">
         <div class="abc row mr-0">
           <mat-form-field class="pl-4 col-8">
@@ -107,7 +106,7 @@
         <div class="abc time-picker row mt-3 ml-0 mr-0">
           <mat-form-field class="col-6 start-time">
             <input [owlDateTime]="startTime" [owlDateTimeTrigger]="startTime" matInput placeholder="{{'Start time' | translate}}"
-                   [(ngModel)]="leaveHomeTime">
+                   [(ngModel)]="leaveHomeTime" (ngModelChange)="_calArriveTime()">
           </mat-form-field>
           <owl-date-time pickerType="timer" #startTime></owl-date-time>
 
