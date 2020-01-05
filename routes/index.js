@@ -126,22 +126,48 @@ router.post('/save-user-pressed', (req, res, next) => {
             });
             newObj.save().then(r => {
                 if (!r) {
-                    res.json({result: 'NOT_READY_TO_PARK'});
+                    userStatus.indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_FAILED'}) : res.json({result: 'CONTROL_GET_CAR_FAILED'});
                     return;
                 }
-                User.updateOne({email: userPressed.userName}, {$set: {status: 'paid'}}).then(r => {
+                if (extraData[3].indexOf('G') > -1) {
+                    ParkingSlot.findOne({_id: Number(extraData[0])}).then(r => {
+                        if (!r) {
+                            res.json({result: 'STATION_NOT_FOUND'});
+                            return;
+                        }
+                        for (var i = 0; i < r.slots.length; i++) {
+                            var s = r.slots[i];
+                            if (s._id === Number(extraData[1])) {
+                                s.future = s.future.filter(f => f.userName != extraData[2]);
+                                break;
+                            }
+                        }
+                        ParkingSlot.updateOne({_id: Number(extraData[0])}, {$set: {slots: r.slots}}).then(r => {
+                            if (!r) {
+                                res.json({result: 'DELETE_USER_SLOT_FAILED'});
+                                return;
+                            }
+                            // res.json({result: 'DELETE_USER_SLOT_SUCCESSFUL'});
+                            // return;
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    });
+                }
+                var userStatus = extraData[3].indexOf('G') > -1 ? 'none' : 'paid';
+                User.updateOne({email: userPressed.userName}, {$set: {status: userStatus}}).then(r => {
                     if (!r) {
-                        res.json({result: 'NOT_READY_TO_PARK'});
+                        extraData[3].indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_FAILED'}) : res.json({result: 'CONTROL_GET_CAR_FAILED'});
                         return;
                     }
-                    req.app.io.emit('user-status', {status: 'paid'});
-                    res.json({result: 'READY_TO_PARK'});
+                    req.app.io.emit('user-status', {status: userStatus});
+                    userStatus.indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_SUCCESSFUL'}) : res.json({result: 'CONTROL_GET_CAR_SUCCESSFUL'});
                 }).catch(err => {
                     console.log(err);
                 });
             }).catch(err => {
                 console.log(err);
-            })
+            });
             return;
         }
         var pressedList = r.pressedList;
@@ -157,13 +183,75 @@ router.post('/save-user-pressed', (req, res, next) => {
                 res.json({result: 'CONTROL_FAILED'});
                 return;
             }
-            User.updateOne({email: userPressed.userName}, {$set: {status: 'paid'}}).then(r => {
+            if (extraData[3].indexOf('G') > -1) {
+                ParkingSlot.findOne({_id: Number(extraData[0])}).then(r => {
+                    if (!r) {
+                        res.json({result: 'STATION_NOT_FOUND'});
+                        return;
+                    }
+                    for (var i = 0; i < r.slots.length; i++) {
+                        var s = r.slots[i];
+                        if (s._id === Number(extraData[1])) {
+                            s.future = s.future.filter(f => f.userName != extraData[2]);
+                            break;
+                        }
+                    }
+                    ParkingSlot.updateOne({_id: Number(extraData[0])}, {$set: {slots: r.slots}}).then(r => {
+                        if (!r) {
+                            res.json({result: 'DELETE_USER_SLOT_FAILED'});
+                            return;
+                        }
+                        // res.json({result: 'DELETE_USER_SLOT_SUCCESSFUL'});
+                        // return;
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                });
+            }
+            var userStatus = extraData[3].indexOf('G') > -1 ? 'none' : 'paid';
+            User.updateOne({email: userPressed.userName}, {$set: {status: userStatus}}).then(r => {
                 if (!r) {
-                    res.json({result: 'CONTROL_FAILED'});
+                    extraData[3].indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_FAILED'}) : res.json({result: 'CONTROL_GET_CAR_FAILED'});
                     return;
                 }
-                req.app.io.emit('user-status', {status: 'paid'});
-                res.json({result: 'CONTROL_SUCCESSFUL'});
+                req.app.io.emit('user-status', {status: userStatus});
+                userStatus.indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_SUCCESSFUL'}) : res.json({result: 'CONTROL_GET_CAR_SUCCESSFUL'});
+            }).catch(err => {
+                console.log(err);
+            });
+        }).catch(err => {
+            console.log(err);
+        });
+    }).catch(err => {
+        console.log(err);
+    });
+});
+router.post('/canceling', (req, res, next) => {
+    const {stationId, slotId, userName} = req.body;
+    ParkingSlot.findOne({_id: stationId}).then(r => {
+        if (!r) {
+            res.json({result: 'CANCELLING_FAILED'});
+            return;
+        }
+        for (var i = 0; i < r.slots.length; i++) {
+            var s = r.slots[i];
+            if (s._id === slotId) {
+                s.future = s.future.filter(f => f.userName != userName);
+                break;
+            }
+        }
+        ParkingSlot.updateOne({_id: stationId}, {$set: {slots: r.slots}}).then(r => {
+            if (!r) {
+                res.json({result: 'CANCELLING_FAILED'});
+                return;
+            }
+            User.updateOne({email: userName}, {$set: {status: 'none'}}).then(r => {
+                if (!r) {
+                    res.json({result: 'CANCELLING_FAILED'});
+                    return;
+                }
+                req.app.io.emit('user-status', {status: 'none'});
+                res.json({result: 'CANCELLING_SUCCESSFUL'});
             }).catch(err => {
                 console.log(err);
             });
@@ -271,40 +359,6 @@ router.post('/extending', (req, res, next) => {
             });
         }).catch(err => {
             console.log(err);
-    });
-});
-router.post('/canceling', (req, res, next) => {
-    const {stationId, slotId, userName} = req.body;
-    ParkingSlot.findOne({_id: stationId}).then(r => {
-        if (!r) {
-            res.json({result: 'CANCELLING_FAILED'});
-            return;
-        }
-        for (var i = 0; i < r.slots.length; i++) {
-            var s = r.slots[i];
-            if (s._id === slotId) {
-                s.future = s.future.filter(f => f.userName != userName);
-                break;
-            }
-        }
-        ParkingSlot.updateOne({_id: stationId}, {$set: {slots: r.slots}}).then(r => {
-            if (!r) {
-                res.json({result: 'CANCELLING_FAILED'});
-                return;
-            }
-            User.updateOne({email: userName}, {$set: {status: 'none'}}).then(r => {
-                if (!r) {
-                    res.json({result: 'CANCELLING_FAILED'});
-                    return;
-                }
-                req.app.io.emit('user-status', {status: 'none'});
-                res.json({result: 'CANCELLING_SUCCESSFUL'});
-            });
-        }).catch(err => {
-            console.log(err);
-        })
-    }).catch(err => {
-        console.log(err);
     });
 });
 router.post('/booking', (req, res, next) => {
@@ -465,6 +519,38 @@ router.get('/get-user-info', (req, res, next) => {
             res.status(500).json({result: 'VERIFY_SERVICE_FAILED'});
         });
 });
+router.post('/create-new-station', (req,res, next) => {
+    const {stationAddress, capacity, lat, lon} = req.body;
+    ParkingSlot.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}]).then(r => {
+        const max = r[0]._id;
+        const newStation = new ParkingSlot({
+            _id: max+1,
+            stationAddress: stationAddress,
+            capacity: capacity,
+            lat: lat,
+            lon: lon,
+            slots: []
+        });
+        newStation.save().then(r => {
+            if (!r) {
+                res.json({result: 'CREATE_NEW_STATION_FAILED'});
+                return;
+            }
+            res.json({result: 'CREATE_NEW_STATION_SUCCESSFUL'});
+        });
+    });
+});
+router.get('/get-all-station', (req, res, next) => {
+    ParkingSlot.aggregate([{$project: {_id: 1, stationAddress: 1, lat: 1, lon: 1}}]).then(r => {
+        if (!r) {
+            res.json({result: 'NO_STATION'});
+            return;
+        }
+        res.json(r);
+    }).catch(err => {
+        console.log(err);
+    })
+});
 router.post('/reset-password', (req, res, next) => {
     var email = req.body.receiverMail;
     var secretKey = '1234qwer';
@@ -559,9 +645,9 @@ router.post('/login', (req, res, next) => {
                 res.status(200).json({result: 'WRONG_PASSWORD'});
                 return;
             }
-            sign({_id: result._id}, {expiresIn: '120'})
+            sign({_id: result._id})
                 .then(token => {
-                    res.cookie('token', token, {maxAge: 10 * 60 * 1000}).json({result: 'LOGIN_SUCCESS', email: email});
+                    res.cookie('token', token, {maxAge: 60 * 60 * 1000}).json({result: 'LOGIN_SUCCESS', email: email});
                     console.log('Token: ' + token); // WARNING: ConsoleLog cause this sign function to run catch block or catch(). Error below
                     // UnhandledPromiseRejectionWarning: Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
                     // CAUSE: req.cookie.token => Wrong | FIX: req.cookies.token => Correct

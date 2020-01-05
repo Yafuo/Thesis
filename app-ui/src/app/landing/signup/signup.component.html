@@ -59,17 +59,18 @@
               </div>
             </div>
           </div>
-          <div class="form-group">
+          <div class="form-group mb-0">
             <button [disabled]="email.errors || pass.errors || user.password != user.confirm" (click)="signup()"
                      type="submit" class="btn btn-primary form-control form-control-sm">{{'Sign up'| translate}}
             </button>
           </div>
-          <div class="form-group text-center">
+          <div class="form-group text-center mb-0">
             <fa-icon *ngIf="isSignUp.indexOf('SIGNUP_SUCCESS') > -1" [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
             <fa-icon *ngIf="isSignUp.indexOf('ALREADY_SIGNUP') > -1" [icon]="faTimesCircle" [styles]="{'color': 'red'}"></fa-icon>
             <i *ngIf="isSignUp.indexOf('SIGNUP_SUCCESS') > -1" style="color: green">{{'SIGNUP_SUCCESS'| translate}}</i>
             <i *ngIf="isSignUp.indexOf('ALREADY_SIGNUP') > -1" style="color: red">{{'ALREADY_SIGNUP'| translate}}</i>
           </div>
+          <div class="text-center text-black-50">&copy; {{'Copyright 2019 Designed by Yafuo.'| translate}}</div>
         </div>
       </div>
       <fa-icon class="position-fixed" style="bottom: 0;right: 0;" (click)="sidenav.open()" [icon]="faBars" size="2x" [styles]="{'color': 'black'}"></fa-icon>

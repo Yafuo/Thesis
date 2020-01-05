@@ -20,7 +20,7 @@ import {getDistance} from "ol/sphere";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://ef04799d.ngrok.io';
+  domain = 'http://ba732ea8.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -30,10 +30,7 @@ export class HomeComponent implements OnInit {
   faLanguage = faLanguage;
   faSyncAlt = faSyncAlt;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
-  parkingStationList = ['Bệnh viện Thống Nhất, Q.Tân Bình', '22/44 CMT8, P.2, Q.Tan Binh',
-    '49a Phan Dang Luu, P.7, Q.Phu Nhuan', '96 Le Quang Dinh, P.14, Q.Binh Thanh'];
-  parkingStationTitude = [{lat: 10.7917131, lon: 106.653557973005}, {lat: 17.8020184, lon: 85.6645121}
-  , {lat: 33.8020184, lon: 56.6645121}, {lat: 18, lon: 10}];
+  stationListInfo = [];
   userLocation = [];
   selectedParkingStation = '';
   selectedUserLocation = '';
@@ -58,7 +55,7 @@ export class HomeComponent implements OnInit {
   qrUrl = '';
   newsObj = {billMsg: '', billCode: ''};
   socket: SocketIOClient.Socket;
-  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, package: 0, endTime: new Date(), lang: ''};
+  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, endTime: new Date(), lang: ''};
   isAvailable = false;
   extend = false;
   endTime = '';
@@ -66,44 +63,50 @@ export class HomeComponent implements OnInit {
   langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
   list = [{opt: 'Log out', details: [], icon: this.faPowerOff}, {opt: 'Language', details: this.langList, icon: this.faLanguage}];
   isTimeValid = true;
+  isUserNearStation = false;
   //Maps API
-  userCoor = {lat: 0, lon: 0};
-  startCoor = {lat: 0, lon: 0};
+  userCurrentCoor = {lat: 0, lon: 0};
   startCoorList = [];
+  distance = 0;
   geoReverseService = 'https://nominatim.openstreetmap.org/reverse?key=iTzWSiYpGxDvhATNtSrqx5gDcnMOkntL&format=json&addressdetails=1&lat={lat}&lon={lon}';
 
   constructor(private translate: TranslateService, private router: Router, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
     this._alwaysListenToChange();
-    translate.setDefaultLang('vn');
   }
 
   ngOnInit() {
+    this._getAllStation();
     this._getUserInfo();
-    this._getLocation();
+    this._getCurrentLocation();
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterAllSearchList = this.allSearch.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value, 1))
     );
-    // this.filterUserLocationList = this.userLocationControl.valueChanges.pipe(
-    //   startWith(''),
-    //   map(value => this._filter(value, 2))
-    // );
-    this.filterparkingStationList = this.parkingStationControl.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value, 3))
-    );
+  }
+
+  private _getAllStation() {
+    this.http.get<any>('/api/get-all-station').subscribe(r => {
+      this.stationListInfo = r;
+      console.log(this.stationListInfo);
+      this.filterparkingStationList = this.parkingStationControl.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filter(value, 3))
+      );
+    });
   }
 
   private _calArriveTime() {
-    if (!this.userLocationControl.value || !this.parkingStationControl.value) return;
+    if ((!this.userLocationControl.value && !this.isCurrentLocationChecked) || !this.parkingStationControl.value) return;
     const index = this.userLocation.indexOf(this.userLocationControl.value);
-    const startPoint = this.startCoorList[index];
-    const endPoint = this.parkingStationTitude[this.parkingStationList.indexOf(this.parkingStationControl.value)];
+    const startPoint = this.isCurrentLocationChecked ? this.userCurrentCoor : this.startCoorList[index];
+    const endPoint = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.parkingStationControl.value) > -1)[0];
+    console.log(endPoint);
     let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
     console.log(u);
     this.http.get<any>(u).subscribe(r => {
       console.log(r);
+      this.distance = r.routes[0].distance;
       const dur = r.routes[0].duration;
       let temp = new Date(this.leaveHomeTime);
       if (dur >= 3600) {
@@ -116,11 +119,18 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  private _setLang(lang: string) {
-    this.translate.setDefaultLang(lang);
+  private _filter(value: string, opt: number): string[] {
+    const filterValue = value.toLowerCase();
+    if (opt === 1) {
+      return this.districtList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
+    } else if (opt === 2) {
+      return this.userLocation.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
+    } else {
+      return this.stationListInfo.filter(d => d.stationAddress.toLowerCase().indexOf(filterValue) > -1);
+    }
   }
 
-  private _getUserLocation(event) {
+  private _suggestUserLocation(event) {
     // event = event + 'thanh pho ho chi minh';
     if (event.indexOf('phuong') < 0) return;
     let u= `https://nominatim.openstreetmap.org/search?q=${event}&format=json&polygon=1&addressdetails=1`;
@@ -140,18 +150,12 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  navTo(i: number) {
-    if (i + 1 === this.list.length) return;
-    this.cookieService.delete('token', '/', 'localhost');
-    this.router.navigate(['/']);
-  }
-
   private _getUserInfo() {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
       this.userInfo = r.result;
       this._setLang(this.userInfo.lang);
       console.log(this.userInfo);
-      this.selectedParkingStation = this.userInfo.status != 'none' ? this.parkingStationList[this.userInfo.stationId-1] : '';
+      this.selectedParkingStation = this.userInfo.status != 'none' ? this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0].stationAddress : '';
       this.endTime = this.userInfo.status != 'none' ? new Date(this.userInfo.endTime).toLocaleString('en-US') : '';
     });
   }
@@ -163,6 +167,7 @@ export class HomeComponent implements OnInit {
       this.qrUrl = '';
       this.newsObj = news;
       this.selectedPackage = {name: '', cost: '', value: 0};
+      if (this.userInfo.status.indexOf('staked') > -1) this._getUserInfo();
     });
     this.socket.on('user-status', (json: any) => {
       console.log(json);
@@ -173,23 +178,20 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  toggleExtend() {
-    this.extend = !this.extend;
+  private _updateDistBetweenCurrentToDestination() {
+    const endPoint = this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0];
+    this._getCurrentLocation();
+    let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${this.userCurrentCoor.lon},${this.userCurrentCoor.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
+    this.http.get<any>(u).subscribe(r => {
+      this.isUserNearStation = r.routes[0].distance < 2400;
+    });
   }
 
-  private _checkLocation() {
-    const coords = this.parkingStationTitude[this.userInfo.stationId - 1];
-    if (Math.abs(this.userCoor.lat - coords.lat) < 5 && Math.abs(this.userCoor.lon - coords.lon) < 5) {
-      return true;
-    }
-    return false;
-  }
-
-  private _getLocation() {
+  private _getCurrentLocation() {
     navigator.geolocation.getCurrentPosition(pos => {
-      this.userCoor.lat = pos.coords.latitude;
-      this.userCoor.lon = pos.coords.longitude;
-    })
+      this.userCurrentCoor.lat = pos.coords.latitude;
+      this.userCurrentCoor.lon = pos.coords.longitude;
+    });
   }
 
   private _getCar() {
@@ -241,20 +243,9 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  private _cancel() {
-    const params = {
-      stationId: this.userInfo.stationId,
-      slotId: this.userInfo.slotId,
-      userName: this.userInfo.email
-    }
-    this.http.post('/api/canceling', params).subscribe(r => {
-      console.log(r);
-    });
-  }
-
   private _extend() {
     this.extend = false;
-    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
+    const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
     var date = Date.now().toString(10);
     const params = {
       stationId: index,
@@ -287,12 +278,11 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  filter() {
-    console.log(this.userLocationControl.value);
+  private filter() {
     this.toggleFilter();
-    this.isTimeValid = this.arriveTime > new Date(Date.now());
+    this.isTimeValid = this.leaveHomeTime > new Date(Date.now());
     this.selectedParkingStation = this.parkingStationControl.value;
-    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
+    const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
     this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
     let readyParkTime = new Date(this.arriveTime);
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
@@ -314,7 +304,7 @@ export class HomeComponent implements OnInit {
     const startTime = new Date(this.arriveTime).toLocaleString('en-US');
     let readyParkTime = new Date(this.arriveTime);
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
-    const index = this.parkingStationList.indexOf(this.selectedParkingStation) + 1;
+    const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
     const d = {
       partnerCode: 'MOMO',
       accessKey: 'F8BBA842ECF85',
@@ -339,19 +329,23 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  private _cancel() {
+    const params = {
+      stationId: this.userInfo.stationId,
+      slotId: this.userInfo.slotId,
+      userName: this.userInfo.email
+    }
+    this.http.post('/api/canceling', params).subscribe(r => {
+      console.log(r);
+    });
+  }
+
   onSelect(p) {
     this.selectedPackage = p;
   }
 
-  private _filter(value: string, opt: number): string[] {
-    const filterValue = value.toLowerCase();
-    if (opt === 1) {
-      return this.districtList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
-    } else if (opt === 2) {
-      return this.userLocation.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
-    } else {
-      return this.parkingStationList.filter(d => d.toLowerCase().indexOf(filterValue) > -1);
-    }
+  toggleExtend() {
+    this.extend = !this.extend;
   }
 
   private _getTranslation(value: string): string {
@@ -369,6 +363,16 @@ export class HomeComponent implements OnInit {
   display(stt: string) {
     // this.render.setStyle(document.body.getElementsByClassName('indicator'), 'transform', 'rotate(180deg)');
     this.state = this.state === 'down' ? 'up' : 'down';
+  }
+
+  private _setLang(lang: string) {
+    this.translate.setDefaultLang(lang);
+  }
+
+  navTo(i: number) {
+    if (i + 1 === this.list.length) return;
+    this.cookieService.delete('token', '/', 'localhost');
+    this.router.navigate(['/']);
   }
 
 }

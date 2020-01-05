@@ -59,16 +59,19 @@
             <mat-icon [inline]="true" class="search-fn" matPrefix>location_searching</mat-icon>
             <input matInput type="text" placeholder=" {{'Choose destination' | translate}}" [formControl]="parkingStationControl" [matAutocomplete]="destination">
             <mat-autocomplete autoActiveFirstOption #destination="matAutocomplete">
-              <mat-option *ngFor="let add of filterparkingStationList | async" [value]="add">
-                <span style="font-size: 14px">{{add}}</span>
+              <mat-option *ngFor="let add of filterparkingStationList | async" [value]="add.stationAddress">
+                <span style="font-size: 14px">{{add.stationAddress}}</span>
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
+          <div class="pl-0 col-4 d-flex align-items-center">
+
+          </div>
         </div>
         <div class="abc row mr-0">
           <mat-form-field class="pl-4 col-8">
             <mat-icon [inline]="true" class="search-fn" matPrefix>location_on</mat-icon>
-            <input matInput type="text" placeholder=" {{'Choose start location' | translate}}" (ngModelChange)="_getUserLocation($event)" [formControl]="userLocationControl"
+            <input matInput type="text" placeholder=" {{'Choose start location' | translate}}" (ngModelChange)="_suggestUserLocation($event)" [formControl]="userLocationControl"
                    [matAutocomplete]="startLocation">
             <mat-autocomplete autoActiveFirstOption #startLocation="matAutocomplete">
               <mat-option *ngFor="let add of filterUserLocationList | async" [value]="add">
@@ -78,8 +81,11 @@
 
           </mat-form-field>
           <div class="pl-0 col-4 d-flex align-items-center">
-            <mat-checkbox style="font-size: small" [(ngModel)]="isCurrentLocationChecked" (click)="_getLocation()">{{'Your location' | translate}}</mat-checkbox>
+            <mat-checkbox style="font-size: small" [(ngModel)]="isCurrentLocationChecked" (click)="_getCurrentLocation()">{{'Your location' | translate}}</mat-checkbox>
           </div>
+        </div>
+        <div class="abc row mr-0 ml-0">
+          <div class="badge badge-success">{{'Distance: ' | translate}}{{distance + ' m'}}</div>
         </div>
         <mat-accordion [hideToggle]="true">
           <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
@@ -119,21 +125,24 @@
         <div class="abc row">
           <div class="col-6"></div>
           <div class="col-6 text-center">
-            <button [disabled]="!parkingStationControl.value || !userLocationControl.value || !selectedPackage.name" (click)="filter()" class="btn btn-sm btn-warning">{{'Done' | translate}}</button>
+            <button [disabled]="!parkingStationControl.value || (!userLocationControl.value && !isCurrentLocationChecked) || !selectedPackage.name" (click)="filter()" class="btn btn-sm btn-warning">{{'Done' | translate}}</button>
           </div>
         </div>
       </div>
       <div *ngIf="userInfo.status.indexOf('paid') > -1" class="wrap-get-car-btn row">
         <div class="col-8 text-center" style="padding: 0 40px">
-          <button [disabled]="!_checkLocation()" class="btn btn-sm btn-primary w-100" (click)="_getCar()">{{'Get car' | translate}}</button>
+          <button [disabled]="!isUserNearStation" class="btn btn-sm btn-primary w-100" (click)="_getCar()">{{'Get car' | translate}}</button>
         </div>
         <div class="col-2 text-center">
-          <button class="btn btn-sm btn-primary w-100" (click)="_getLocation()"><fa-icon [icon]="faSyncAlt" [styles]="{'color': 'white'}"></fa-icon></button>
+          <button class="btn btn-sm btn-primary w-100" (click)="_updateDistBetweenCurrentToDestination()"><fa-icon [icon]="faSyncAlt" [styles]="{'color': 'white'}"></fa-icon></button>
         </div>
       </div>
       <div *ngIf="userInfo.status.indexOf('staked') > -1" class="wrap-feature-btn row">
-        <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
-          <button [disabled]="userInfo.status === 'paid'" (click)="_park()" class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
+        <div class="col-8 col-md-3 text-center" style="padding: 0 40px">
+          <button [disabled]="!isUserNearStation" (click)="_park()" class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
+        </div>
+        <div class="col-2 col-md-1 text-center">
+          <button class="btn btn-sm btn-primary w-100" (click)="_updateDistBetweenCurrentToDestination()"><fa-icon [icon]="faSyncAlt" [styles]="{'color': 'white'}"></fa-icon></button>
         </div>
         <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
           <button class="btn btn-sm btn-warning w-100" (click)="toggleExtend()">{{'Extend' | translate}}</button>

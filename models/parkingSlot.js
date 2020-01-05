@@ -4,6 +4,8 @@ const parkingSlotSchema = new Schema({
         _id: Number,
         stationAddress: String,
         capacity: Number,
+        lat: Number,
+        lon: Number,
         slots: [
             {
                 _id: Number,
