@@ -37,20 +37,25 @@
             <p *ngIf="userInfo.status !== 'none' && !isTimeValid" class="badge badge-danger">{{'This time has passed & You\'ve already booked'}}</p>
             <p>
               <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
-              <span class="{{'text-success'}}">{{'Available' | translate}}</span>
-              <button [disabled]="qrUrl || userInfo.status != 'none' || !isTimeValid" (click)="_book()" class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
+              <span *ngIf="newsObj.action !== 'EXTENDING'" class="{{'text-success'}}">{{'Available' | translate}}</span>
+              <span *ngIf="newsObj.action === 'EXTENDING'" class="{{'text-success'}}">{{'CAN_BE_EXTENDED' | translate}}</span>
+              <button *ngIf="newsObj.action !== 'EXTENDING'" [disabled]="qrUrl || userInfo.status != 'none' || !isTimeValid" (click)="_book()" class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
+              <button *ngIf="newsObj.action === 'EXTENDING'" [disabled]="qrUrl" (click)="_extend()" class="btn btn-sm btn-success float-right">{{'Extend' | translate}}</button>
             </p>
           </fieldset>
           <fieldset *ngIf="!isAvailable" class="p-2" style="border: 1px #dc3545 solid">
             <legend class="w-auto"><span class="badge badge-danger">{{'Result' | translate}}</span></legend>
             <fa-icon [icon]="faTimesCircle" [styles]="{'color': 'red'}"></fa-icon>
-            <span class="text-danger">{{'Not Available' | translate}}</span>
-            <button disabled class="btn btn-sm btn-primary float-right">{{'Booking' | translate}}</button>
+            <span *ngIf="newsObj.action !== 'EXTENDING'" class="text-danger">{{'Not Available' | translate}}</span>
+            <span *ngIf="newsObj.action === 'EXTENDING'" class="text-danger">{{'CANNOT_BE_EXTENDED' | translate}}</span>
+            <button *ngIf="newsObj.action !== 'EXTENDING'" disabled class="btn btn-sm btn-primary float-right">{{'Booking' | translate}}</button>
+            <button *ngIf="newsObj.action === 'EXTENDING'" disabled class="btn btn-sm btn-primary float-right">{{'Extend' | translate}}</button>
           </fieldset>
         </div>
         <div class="col-1"></div>
       </div>
-      <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto">
+      <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto text-center">
+        <h3>QR CODE</h3>
         <img src="{{qrUrl}}" style="width: 50vw">
       </div>
       <div class="wrap-filter hide-this-{{!isFilterClicked}}">
@@ -155,10 +160,10 @@
             <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
               <mat-expansion-panel-header style="font-size: 14px" class="row">
                 <mat-panel-title class="col-2 col-sm-2 p-0">
-                  <button [disabled]="!selectedPackage.name" class="btn btn-sm btn-primary btn-extend" (click)="_extend()">{{'Done' | translate}}</button>
+                  <button [disabled]="!selectedPackage.name" class="btn btn-sm btn-primary btn-extend" (click)="_checkExtend()">{{'Done' | translate}}</button>
                 </mat-panel-title>
                 <mat-panel-description class="col-8 col-sm-8 p-0 mr-0">
-                  <span>{{'Please click Done when finish' | translate}}</span>
+                  <span>{{'Please select extending package' | translate}}</span>
                 </mat-panel-description>
                 <mat-panel-description class="col-2 col-sm-2 p-0">
                   <div class=" indicator{{'-'+ state}}">

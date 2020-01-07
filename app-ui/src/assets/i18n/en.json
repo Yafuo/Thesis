@@ -39,7 +39,7 @@
   "Park":"Park",
   "Extend": "Extend",
   "Cancel":"Cancel",
-  "Please click Done when finish": "Please click Done when finish",
+  "Please select extending package": "Please select extending package",
   "Available": "Available",
   "Not Available": "Not Available",
   "1 hour": "1 hour",
@@ -54,6 +54,8 @@
   "Chinese": "Chinese",
   "SIGNUP_SUCCESS": "Congrats. Signup successfully!",
   "ALREADY_SIGNUP": "Oops. You have already signed up",
+  "CAN_BE_EXTENDED": "Can be extended",
+  "CANNOT_BE_EXTENDED": "Cannot be extended",
   "DISTRICT": {
     "Tan Phu": "Tan Phu",
     "Tan Binh": "Tan Binh",

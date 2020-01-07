@@ -20,7 +20,7 @@ import {getDistance} from "ol/sphere";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://ba732ea8.ngrok.io';
+  domain = 'http://6f9ede8f.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -49,11 +49,11 @@ export class HomeComponent implements OnInit {
   selectedPackage = {name: '', cost: '', value: 0};
   state = 'down';
   arriveTime: Date;
-  leaveHomeTime = new Date(Date.now());
+  leaveHomeTime: Date;
   isShowResult = false;
   isCurrentLocationChecked = false;
   qrUrl = '';
-  newsObj = {billMsg: '', billCode: ''};
+  newsObj = {billMsg: '', billCode: '', action: ''};
   socket: SocketIOClient.Socket;
   userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, endTime: new Date(), lang: ''};
   isAvailable = false;
@@ -78,6 +78,8 @@ export class HomeComponent implements OnInit {
     this._getAllStation();
     this._getUserInfo();
     this._getCurrentLocation();
+    this.leaveHomeTime = new Date(Date.now());
+    this.leaveHomeTime.setMinutes(this.leaveHomeTime.getMinutes()+1);
     this.districtList = this.districtList.map(d => this._getTranslation(d));
     this.filterAllSearchList = this.allSearch.valueChanges.pipe(
       startWith(''),
@@ -101,7 +103,6 @@ export class HomeComponent implements OnInit {
     const index = this.userLocation.indexOf(this.userLocationControl.value);
     const startPoint = this.isCurrentLocationChecked ? this.userCurrentCoor : this.startCoorList[index];
     const endPoint = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.parkingStationControl.value) > -1)[0];
-    console.log(endPoint);
     let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
     console.log(u);
     this.http.get<any>(u).subscribe(r => {
@@ -166,7 +167,7 @@ export class HomeComponent implements OnInit {
       console.log(news);
       this.qrUrl = '';
       this.newsObj = news;
-      this.selectedPackage = {name: '', cost: '', value: 0};
+      if (this.newsObj.action!=='EXTENDING') this.selectedPackage = {name: '', cost: '', value: 0};
       if (this.userInfo.status.indexOf('staked') > -1) this._getUserInfo();
     });
     this.socket.on('user-status', (json: any) => {
@@ -175,6 +176,11 @@ export class HomeComponent implements OnInit {
       this.selectedPackage = {name: '', cost: '', value: 0};
       this.qrUrl = '';
       if (this.userInfo.status.indexOf('staked') > -1) this._getUserInfo();
+    });
+    this.socket.on('refund', (json: any) => {
+      console.log(json);
+      const hash = json.hash;
+      this._refund(hash);
     });
   }
 
@@ -237,12 +243,29 @@ export class HomeComponent implements OnInit {
     var signature = CryptoJS.HmacSHA256(data, secretKey);
     d.signature = signature.toString();
     this.http.post<any>('https://test-payment.momo.vn/gw_payment/transactionProcessor', JSON.stringify(d)).subscribe(r => {
+      console.log('PARK');
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
     });
   }
 
+  private _checkExtend() {
+    this.extend = false;
+    const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
+    var date = Date.now().toString(10);
+    const params = {
+      stationId: index,
+      userName: this.userInfo.email,
+      package: this.selectedPackage.value,
+      endTime: this.endTime,
+      slotId: this.userInfo.slotId
+    };
+    this.http.post<any>('/api/check-slot-extendable', params).subscribe(r => {
+      this.isShowResult = true;
+      this.isAvailable = r.result.indexOf('CAN_EXTEND') > -1;
+    });
+  }
   private _extend() {
     this.extend = false;
     const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
@@ -257,14 +280,14 @@ export class HomeComponent implements OnInit {
     const d = {
       partnerCode: 'MOMO',
       accessKey: 'F8BBA842ECF85',
-      requestId: 'UIT' + date,
+      requestId: 'EXTEND' + date,
       amount: (Number(this.selectedPackage.cost) * 2).toString(10),
-      orderId: 'UIT' + date,
+      orderId: 'EXTEND' + date,
       orderInfo: this.selectedPackage.name,
       returnUrl: this.domain,
       notifyUrl: this.domain + '/api/extending',
       requestType: 'captureMoMoWallet',
-      extraData: `${params.stationId}-${params.slotId}-${params.userName}-${this.selectedPackage.value}-${this.endTime}`,
+      extraData: `${params.stationId}-${params.slotId}-${params.userName}-${params.package}-${params.endTime}`,
       signature: ''
     };
     var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
@@ -272,9 +295,24 @@ export class HomeComponent implements OnInit {
     var signature = CryptoJS.HmacSHA256(data, secretKey);
     d.signature = signature.toString();
     this.http.post<any>('https://test-payment.momo.vn/gw_payment/transactionProcessor', JSON.stringify(d)).subscribe(r => {
+      console.log('EXTEND');
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
+    });
+  }
+
+  private _refund(hash: string) {
+    let date = Date.now().toString(10);
+    const d = {
+      partnerCode: 'MOMO',
+      requestId: 'REFUND'+ date,
+      hash: hash,
+      version: 2
+    };
+    this.http.post('https://test-payment.momo.vn/pay/refund', JSON.stringify(d)).subscribe(r => {
+      console.log('REFUND');
+      console.log(r);
     });
   }
 
@@ -308,9 +346,9 @@ export class HomeComponent implements OnInit {
     const d = {
       partnerCode: 'MOMO',
       accessKey: 'F8BBA842ECF85',
-      requestId: 'UIT' + date,
+      requestId: 'BOOK' + date,
       amount: this.selectedPackage.cost,
-      orderId: 'UIT' + date,
+      orderId: 'BOOK' + date,
       orderInfo: this.selectedPackage.name,
       returnUrl: this.domain,
       notifyUrl: this.domain + '/api/booking',
@@ -323,6 +361,7 @@ export class HomeComponent implements OnInit {
     var signature = CryptoJS.HmacSHA256(data, secretKey);
     d.signature = signature.toString();
     this.http.post<any>('https://test-payment.momo.vn/gw_payment/transactionProcessor', JSON.stringify(d)).subscribe(r => {
+      console.log('BOOK');
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);

@@ -7,10 +7,18 @@ var {isLoggedIn} = require('../custom_lib/authenticate');
 var {hash, compare} = require('../custom_lib/bcrypt');
 var {verify, sign} = require('../custom_lib/jwt');
 var crypto = require('crypto-js');
+var NodeRSA = require('node-rsa');
 var encHex = require('crypto-js/enc-hex');
 var encUtf8 = require('crypto-js/enc-utf8');
 var {io, app} = require('../app');
 var nodeMailer = require('nodemailer');
+const pubKey = 'MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAohdHc1KjKfu+T6ABqGAhieGO9omjvspfz4FWY0dd55plrBdFQYuYu' +
+    'bc43hOkNtRXFUsrxYKB3FiBot0T12bde8XMveQe/HzUkdc46d7SR7CQyANEQvKt2SRDTyeyQAW9XVnWw5CsK1zFCRCBNH3RsEcMfzWPneK1tKaA+4' +
+    'ilL7br/0Xr0ajtpdS9ySWJyVLZh3sj3hHpz9NE9SrtRA74N2UcHEaVKg6e34G/hZKaQW87yto6H/0jXx0oKZQ7/qQyKqxiNpdlWKHQgRTFr3R8L1S' +
+    '52ipJvjJ9oenVwxafRmQ4fp4UcOuleXblcSmK/d3Bj+2cBx4O9Z6B4Ic4dY2TSYgof/g0HvSIBTqOGug84cGxTsnoxVKv0RdLAp9lE29ZF+kRGDao' +
+    'exLeJog/SLWOpgQWs2ZL/StCfdiLDaP52fMui8ePp92LeZlW0oAQtMeOu6YR5Yz0zsHP96eFHTABooXs3sbf0+5ADQwTAjtC5x9B+CuzFYF0Kg5BS' +
+    'WGQPEpV9Ta83eZ5cTXE4KuYRVupCi4UhFaq74u36wQucLMJhrg0GagFrfVwBYmDhMA2BNmp4+ORiSYdklSNFH2cXMJOSJhUL5KT8DmpzpZp5kmvPa' +
+    'XI5q0hHY2+lP5VtMWlp7vOOC4onbg1RuPv2YeBSXjcbp7ZEbbchv+8rKjRnTNtFncCAwEAAQ==';
 
 /* GET home page. */
 router.get('/home', isLoggedIn, function (req, res, next) {
@@ -298,6 +306,42 @@ router.post('/get-available-slot', (req, res, next) => {
         console.log(err);
     });
 });
+router.post('/check-slot-extendable', (req, res, next) => {
+    const {stationId, userName, package, endTime, slotId} = req.body;
+    ParkingSlot.aggregate([{$match: {_id: Number(stationId)}}, {$project: {_id: 0, slots: 1}}]).then(r => {
+        var flag = false;
+        var slotList = r[0].slots;
+        var futureList = slotList[slotList.map(s => {return s._id}).indexOf(slotId)].future;
+        for (var i = 0; i< futureList.length; i++) {
+            const email = futureList[i].userName;
+            if (userName === email) {
+                var newEndTime = new Date(endTime);
+                newEndTime.setHours(newEndTime.getHours()+Number(package));
+                if (futureList.length === 1) {
+                    flag = true;
+                    break;
+                } else {
+                    if (futureList[i+1]) {
+                        if (newEndTime < futureList[i+1].startTime) {
+                            flag = true;
+                            break;
+                        }
+                    } else {
+                        flag = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (flag) {
+            req.app.io.emit('news', {billMsg: '', billCode: '', action: 'EXTENDING'});
+            res.json({result: 'CAN_EXTEND'});
+            return;
+        }
+        req.app.io.emit('news', {billMsg: '', billCode: '', action: 'EXTENDING'});
+        res.json({result: 'CANNOT_EXTEND'});
+    });
+});
 router.post('/extending', (req, res, next) => {
     if (req.body.errorCode !== '0') return;
     const extraData = req.body.extraData.split('-');
@@ -325,7 +369,7 @@ router.post('/extending', (req, res, next) => {
                             break;
                         } else {
                             if (futures[i+1]) {
-                                if (newEndTime < futures[i+1].endTime) {
+                                if (newEndTime < futures[i+1].startTime) {
                                     futures[i].endTime = newEndTime;
                                     futures[i].package += Number(extraData[3]);
                                     flag = true;
@@ -353,6 +397,16 @@ router.post('/extending', (req, res, next) => {
                         }).catch(err => {
                         console.log(err);
                     });
+                } else {
+                    const jsonString = {
+                        partnerCode: 'MOMO',
+                        partnerRefId: req.body.orderId,
+                        momoTransId: req.body.transId,
+                        amount: req.body.amount
+                    }
+                    const key = new NodeRSA(pubKey, {encryptionScheme: 'pkcs1'});
+                    const encrypted = key.encrypt(JSON.stringify(jsonString), 'base64');
+                    req.app.io.emit('refund', {hash: encrypted});
                 }
             }).catch(err => {
                 console.log(err);
@@ -449,6 +503,16 @@ router.post('/booking', (req, res, next) => {
                         }).catch(err => {
                             console.log(err);
                         });
+                    } else {
+                        const jsonString = {
+                            partnerCode: 'MOMO',
+                            partnerRefId: req.body.orderId,
+                            momoTransId: req.body.transId,
+                            amount: req.body.amount
+                        }
+                        const key = new NodeRSA(pubKey, {encryptionScheme: 'pkcs1'});
+                        const encrypted = key.encrypt(JSON.stringify(jsonString), 'base64');
+                        req.app.io.emit('refund', {hash: encrypted});
                     }
                 } else {
                     while (slot.indexOf(index) > -1) {

@@ -39,7 +39,7 @@
   "Park":"Đậu xe",
   "Extend": "Gia hạn",
   "Cancel":"Hủy",
-  "Please click Done when finish": "Xin nhấn nút Xong khi xong",
+  "Please select extending package": "Xin chọn gói gia hạn",
   "Available": "Có chỗ",
   "Not Available": "Không còn chỗ",
   "1 hour": "1 tiếng",
@@ -54,6 +54,8 @@
   "Chinese": "Tiếng Trung",
   "SIGNUP_SUCCESS": "Chúc mừng. Bạn đã đăng ký thành công",
   "ALREADY_SIGNUP": "Ồ. Bạn đã đăng ký rồi",
+  "CAN_BE_EXTENDED": "Có thể gia hạn",
+  "CANNOT_BE_EXTENDED": "Không thể gia hạn",
   "DISTRICT": {
     "Tan Phu": "Tân Phú",
     "Tan Binh": "Tân Bình",
