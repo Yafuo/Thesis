@@ -10,7 +10,7 @@ import * as io from 'socket.io-client';
 import {CookieService} from "ngx-cookie-service";
 import {EventBusService} from "../common/service/event-bus.service";
 import {Router} from "@angular/router";
-import {getDistance} from "ol/sphere";
+import {marker} from "./model/marker.image";
 
 @Component({
   selector: 'app-home',
@@ -33,7 +33,6 @@ export class HomeComponent implements OnInit {
   stationListInfo = [];
   userLocation = [];
   selectedParkingStation = '';
-  selectedUserLocation = '';
   userLocationControl = new FormControl();
   parkingStationControl = new FormControl();
   allSearch = new FormControl();
@@ -64,6 +63,8 @@ export class HomeComponent implements OnInit {
   userCurrentCoor = {lat: 0, lon: 0};
   startCoorList = [];
   distance = 0;
+  suggestionList = ['phuong', 'cong vien', 'bệnh viện', 'tower', 'park'];
+  markerImg = marker;
   geoReverseService = 'https://nominatim.openstreetmap.org/reverse?key=iTzWSiYpGxDvhATNtSrqx5gDcnMOkntL&format=json&addressdetails=1&lat={lat}&lon={lon}';
 
   constructor(private translate: TranslateService, private router: Router, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
@@ -93,7 +94,6 @@ export class HomeComponent implements OnInit {
   private _getAllStation() {
     this.http.get<any>('/api/get-all-station').subscribe(r => {
       this.stationListInfo = r;
-      console.log(this.stationListInfo);
       this.filterparkingStationList = this.parkingStationControl.valueChanges.pipe(
         startWith(''),
         map(value => this._filter(value, 3))
@@ -107,20 +107,16 @@ export class HomeComponent implements OnInit {
     const startPoint = this.isCurrentLocationChecked ? this.userCurrentCoor : this.startCoorList[index];
     const endPoint = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.parkingStationControl.value) > -1)[0];
     let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
-    console.log(u);
     this.http.get<any>(u).subscribe(r => {
-      console.log(r);
       this.distance = r.routes[0].distance;
       const dur = r.routes[0].duration;
       let temp = new Date(this.leaveHomeTime);
       if (dur >= 3600) {
         temp.setHours(temp.getHours()+dur/3600, temp.getMinutes()+(dur%3600)/60);
         this.arriveTime = temp;
-        console.log(this.arriveTime);
       } else {
         temp.setMinutes(temp.getMinutes()+dur/60, temp.getSeconds()+dur%60);
         this.arriveTime = temp;
-        console.log(this.arriveTime);
       }
     });
   }
@@ -137,12 +133,12 @@ export class HomeComponent implements OnInit {
   }
 
   private _suggestUserLocation(event) {
-    // event = event + 'thanh pho ho chi minh';
-    if (event.indexOf('phuong') < 0) return;
+    if (this.suggestionList.filter(sug => event.indexOf(sug) > -1).length === 0) return;
     let u= `https://nominatim.openstreetmap.org/search?q=${event}&format=json&polygon=1&addressdetails=1`;
     this.http.get<any>(u).subscribe(r => {
       console.log(r);
       this.userLocation = [];
+      this.startCoorList = [];
       r.forEach(lo => {
         if (lo.display_name.indexOf('Ho Chi Minh City') > -1) {
           this.startCoorList.push({lat: lo.lat, lon: lo.lon});
@@ -160,7 +156,6 @@ export class HomeComponent implements OnInit {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
       this.userInfo = r.result;
       this._setLang(this.userInfo.lang);
-      console.log(this.userInfo);
       this.selectedParkingStation = this.userInfo.status != 'none' ? this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0].stationAddress : '';
       this.endTime = this.userInfo.status != 'none' ? new Date(this.userInfo.endTime).toLocaleString('en-US') : '';
     });
@@ -326,7 +321,6 @@ export class HomeComponent implements OnInit {
     this.isTimeValid = this.leaveHomeTime > new Date(Date.now());
     this.selectedParkingStation = this.parkingStationControl.value;
     const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
-    this.selectedUserLocation = this.isCurrentLocationChecked ? '14 Tran Van On, P.Tay Thanh, Q.Tan Phu' : this.userLocationControl.value;
     let readyParkTime = new Date(this.arriveTime);
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const params = {
@@ -380,6 +374,7 @@ export class HomeComponent implements OnInit {
       userName: this.userInfo.email
     }
     this.http.post('/api/canceling', params).subscribe(r => {
+      console.log('CANCEL');
       console.log(r);
     });
   }

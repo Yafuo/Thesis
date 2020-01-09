@@ -30,6 +30,11 @@ a {
   }
 }
 .wrap-content {
+  @media only screen and (min-device-width: 1367px) {
+    .mobile-wrapper {
+      padding: 0 30vw;
+    }
+  }
   .wrap-symbol {
     text-align: center;
   }

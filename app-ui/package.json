@@ -34,6 +34,7 @@
     "ng-pick-datetime": "^7.0.0",
     "ngx-bootstrap": "^5.2.0",
     "ngx-cookie-service": "^2.2.0",
+    "ngx-openlayers": "^0.8.22",
     "ngx-spinner": "^8.0.3",
     "ol": "^6.1.1",
     "rxjs": "~6.4.0",

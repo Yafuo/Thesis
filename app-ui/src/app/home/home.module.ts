@@ -13,6 +13,7 @@ import {
 } from "@angular/material";
 import {MatRadioModule} from "@angular/material/radio";
 import {OwlDateTimeModule, OwlNativeDateTimeModule} from "ng-pick-datetime";
+import {AngularOpenlayersModule} from "ngx-openlayers";
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import {OwlDateTimeModule, OwlNativeDateTimeModule} from "ng-pick-datetime";
     MatExpansionModule,
     ReactiveFormsModule,
     OwlDateTimeModule,
-    OwlNativeDateTimeModule
+    OwlNativeDateTimeModule,
+    AngularOpenlayersModule
   ],
   providers: []
 })
