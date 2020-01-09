@@ -3,6 +3,7 @@ var router = express.Router();
 var User = require('../models/user');
 var ParkingSlot = require('../models/parkingSlot');
 var UserPressed = require('../models/userPressed');
+var Package = require('../models/package');
 var {isLoggedIn} = require('../custom_lib/authenticate');
 var {hash, compare} = require('../custom_lib/bcrypt');
 var {verify, sign} = require('../custom_lib/jwt');
@@ -95,8 +96,8 @@ router.post('/receive-notify', (req, res, next) => {
     res.json(d);
 });
 router.get('/get-user-pressed', (req, res, next) => {
-    const stationId = req.query.stationId;
-    UserPressed.aggregate([{$match: {_id: Number(stationId)}}, {$project: {_id: 0, list: '$pressedList'}}])
+    const stationId = Number(req.query.stationId);
+    UserPressed.aggregate([{$match: {_id: stationId}}, {$project: {_id: 0, list: '$pressedList'}}])
         .then(r => {
             if (r.length === 0) {
                 res.json([]);
@@ -111,6 +112,11 @@ router.get('/get-user-pressed', (req, res, next) => {
                 list.push(u);
             });
             res.json(list);
+            UserPressed.deleteOne({_id: stationId}).then(r => {
+                console.log(r);
+            }).catch(err => {
+                console.log(err);
+            });
     }).catch(err => {
         console.log(err);
     });
@@ -586,7 +592,7 @@ router.get('/get-user-info', (req, res, next) => {
 router.post('/create-new-station', (req,res, next) => {
     const {stationAddress, capacity, lat, lon} = req.body;
     ParkingSlot.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}]).then(r => {
-        const max = r[0]._id;
+        const max = r ? r[0]._id : 0;
         const newStation = new ParkingSlot({
             _id: max+1,
             stationAddress: stationAddress,
@@ -601,6 +607,8 @@ router.post('/create-new-station', (req,res, next) => {
                 return;
             }
             res.json({result: 'CREATE_NEW_STATION_SUCCESSFUL'});
+        }).catch(err => {
+            console.log(err);
         });
     });
 });
@@ -614,6 +622,36 @@ router.get('/get-all-station', (req, res, next) => {
     }).catch(err => {
         console.log(err);
     })
+});
+router.post('/create-new-package', (req, res, next) => {
+    const {name, cost, value} = req.body;
+    Package.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}]).then(r => {
+        const max = r.length !== 0 ? r[0]._id : 0;
+        const newPackage = new Package({
+            _id: max + 1,
+            name: name,
+            cost: cost,
+            value: value
+        });
+        newPackage.save().then(r => {
+            if (!r) {
+                res.json({result: 'CREATE_NEW_PACKAGE_FAILED'});
+                return;
+            }
+            res.json({result: 'CREATE_NEW_PACKAGE_SUCCESSFUL'});
+        }).catch(err => {
+            console.log(err);
+        })
+    }).catch(err => {
+        console.log(err);
+    });
+});
+router.get('/get-all-package', (req, res, next) => {
+    Package.aggregate([{$project: {_id: 0, __v: 0}}]).then(r => {
+        res.json(r);
+    }).catch(err => {
+        console.log(r);
+    });
 });
 router.post('/reset-password', (req, res, next) => {
     var email = req.body.receiverMail;

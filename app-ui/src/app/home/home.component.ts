@@ -41,11 +41,7 @@ export class HomeComponent implements OnInit {
   filterUserLocationList: Observable<string[]>;
   filterparkingStationList: Observable<string[]>;
   isFilterClicked = false;
-  packageList = [{name: '1 hour', cost: '5000', value: 1}, {name: '3 hour', cost: '20000', value: 3}, {
-    name: '1 day',
-    cost: '50000',
-    value: 24
-  }];
+  packageList = [];
   selectedPackage = {name: '', cost: '', value: 0};
   state = 'down';
   arriveTime: Date;
@@ -75,6 +71,7 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
+    this._getAllPackage();
     this._getAllStation();
     this._getUserInfo();
     this._getCurrentLocation();
@@ -85,6 +82,12 @@ export class HomeComponent implements OnInit {
       startWith(''),
       map(value => this._filter(value, 1))
     );
+  }
+
+  private _getAllPackage() {
+    this.http.get<any>('/api/get-all-package').subscribe(r => {
+      this.packageList = r;
+    });
   }
 
   private _getAllStation() {
@@ -111,11 +114,13 @@ export class HomeComponent implements OnInit {
       const dur = r.routes[0].duration;
       let temp = new Date(this.leaveHomeTime);
       if (dur >= 3600) {
-        temp.setHours(temp.getHours()+dur/3600, temp.getMinutes()+dur%3600);
+        temp.setHours(temp.getHours()+dur/3600, temp.getMinutes()+(dur%3600)/60);
         this.arriveTime = temp;
+        console.log(this.arriveTime);
       } else {
         temp.setMinutes(temp.getMinutes()+dur/60, temp.getSeconds()+dur%60);
         this.arriveTime = temp;
+        console.log(this.arriveTime);
       }
     });
   }
