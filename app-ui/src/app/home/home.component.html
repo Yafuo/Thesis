@@ -203,7 +203,7 @@
         </div>
         <div *ngIf="userInfo.status.indexOf('staked') > -1" class="wrap-feature-btn row">
           <div class="col-8 col-md-3 text-center" style="padding: 0 40px">
-            <button [disabled]="!isUserNearStation" (click)="_park()"
+            <button [disabled]="!isUserNearStation && !isTimeCome" (click)="_park()"
                     class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
           </div>
           <div class="col-2 col-md-1 text-center">

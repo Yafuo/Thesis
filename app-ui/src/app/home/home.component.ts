@@ -50,7 +50,7 @@ export class HomeComponent implements OnInit {
   qrUrl = '';
   newsObj = {billMsg: '', billCode: '', action: ''};
   socket: SocketIOClient.Socket;
-  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, endTime: new Date(), lang: ''};
+  userInfo = {email: '', userId: '', status: '', stationId: 0, slotId: 0, startTime: new Date(), endTime: new Date(), lang: ''};
   isAvailable = false;
   extend = false;
   endTime = '';
@@ -59,6 +59,7 @@ export class HomeComponent implements OnInit {
   list = [{opt: 'Log out', details: [], icon: this.faPowerOff}, {opt: 'Language', details: this.langList, icon: this.faLanguage}];
   isTimeValid = true;
   isUserNearStation = false;
+  isTimeCome = false;
   //Maps API
   userCurrentCoor = {lat: 0, lon: 0};
   startCoorList = [];
@@ -75,7 +76,7 @@ export class HomeComponent implements OnInit {
     this._getAllPackage();
     this._getAllStation();
     this._getUserInfo();
-    this._getCurrentLocation();
+    this._updateDistBetweenCurrentToDestination();
     this.leaveHomeTime = new Date(Date.now());
     this.leaveHomeTime.setMinutes(this.leaveHomeTime.getMinutes()+1);
     this.districtList = this.districtList.map(d => this._getTranslation(d));
@@ -190,6 +191,8 @@ export class HomeComponent implements OnInit {
     let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${this.userCurrentCoor.lon},${this.userCurrentCoor.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
     this.http.get<any>(u).subscribe(r => {
       this.isUserNearStation = r.routes[0].distance < 2400;
+      const currentTime = new Date(Date.now());
+      this.isTimeCome = this.userInfo.startTime.getHours() - currentTime.getHours() === 0 && this.userInfo.startTime.getMinutes() - currentTime.getMinutes() <= 0;
     });
   }
 

@@ -4,6 +4,7 @@ var User = require('../models/user');
 var ParkingSlot = require('../models/parkingSlot');
 var UserPressed = require('../models/userPressed');
 var Package = require('../models/package');
+var PaymentHistory = require('../models/paymentHistory');
 var {isLoggedIn} = require('../custom_lib/authenticate');
 var {hash, compare} = require('../custom_lib/bcrypt');
 var {verify, sign} = require('../custom_lib/jwt');
@@ -124,6 +125,7 @@ router.get('/get-user-pressed', (req, res, next) => {
 router.post('/save-user-pressed', (req, res, next) => {
     if (req.body.errorCode !== '0') return;
     const extraData = req.body.extraData.split('-');
+    logger(extraData[2], 'paid', `0 hour`, req.body.responseTime);
     UserPressed.findOne({_id: Number(extraData[0])}).then(r => {
         if (!r) {
             var pressedList = [];
@@ -351,6 +353,7 @@ router.post('/check-slot-extendable', (req, res, next) => {
 router.post('/extending', (req, res, next) => {
     if (req.body.errorCode !== '0') return;
     const extraData = req.body.extraData.split('-');
+    logger(extraData[2], 'extend', `${extraData[3]} hour`, req.body.responseTime);
     const slotId = Number(extraData[1]);
     var flag = false;
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$match: {_id: Number(extraData[0])}}, {$sort: {'slots._id': 1}}, {$group: {_id: '$_id', slots: {'$push': '$slots'}}}])
@@ -424,6 +427,7 @@ router.post('/extending', (req, res, next) => {
 router.post('/booking', (req, res, next) => {
     if (req.body.errorCode !== '0') return;
     let info = req.body.extraData.split('-');
+    logger(info[2], 'stake', `${info[4]} hour`, req.body.responseTime);
     ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {_id: Number(info[0])}}, {$sort: {'slots.future.startTime': 1}}, {
         $group: {
             _id: '$slots._id',
@@ -572,13 +576,13 @@ router.get('/get-user-info', (req, res, next) => {
                     res.json({result: 'USER_DELETED'});
                     return;
                 }
-                ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {'slots.future._id': decoded._id}}, {$project: {stationId: '$_id', slotId: '$slots._id', endTime: '$slots.future.endTime'}}])
+                ParkingSlot.aggregate([{$unwind: '$slots'}, {$unwind: '$slots.future'}, {$match: {'slots.future._id': decoded._id}}, {$project: {stationId: '$_id', slotId: '$slots._id', startTime: '$slots.future.startTime', endTime: '$slots.future.endTime'}}])
                     .then(rr => {
                         if (rr.length === 0) {
                             res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: 0, slotId: 0, endTime: '', lang: r.lang}});
                             return;
                         }
-                        res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: rr[0].stationId, slotId: rr[0].slotId, endTime: rr[0].endTime, lang: r.lang}});
+                        res.json({result: {email: r.email, userId: decoded._id, status: r.status, stationId: rr[0].stationId, slotId: rr[0].slotId, startTime: rr[0].startTime, endTime: rr[0].endTime, lang: r.lang}});
                     });
             }).catch(err => {
                 console.log(err);
@@ -652,6 +656,15 @@ router.get('/get-all-package', (req, res, next) => {
     }).catch(err => {
         console.log(r);
     });
+});
+router.post('/get-future-station', (req, res, next) => {
+    const {stationId} = req.body;
+    ParkingSlot.aggregate([{$match: {_id: Number(stationId)}}, {$project: {_id: 0, stationAddress: 1, slots: 1}}])
+        .then(r => {
+            res.json({r});
+        }).catch(err => {
+            console.log(err);
+    })
 });
 router.post('/reset-password', (req, res, next) => {
     var email = req.body.receiverMail;
@@ -764,5 +777,33 @@ router.post('/login', (req, res, next) => {
         res.status(503).json({result: 'QUERY_DATABASE_FAILED'});
     });
 });
+function logger(userName, actionName, amount, date) {
+    if (!isExtend) {
+        PaymentHistory.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}, {$lookup: {
+                from: User,
+                localField: userName,
+                foreignField: email,
+                as: 'userName'
+            }}])
+            .then(r => {
+                var max = r.length !== 0 ? r[0]._id : 0;
+                const newLog = new PaymentHistory({
+                    _id: max + 1,
+                    userName: userName,
+                    actionName: actionName,
+                    amount: amount,
+                    time: date
+                });
+            }).catch(err => {
+                console.log(err);
+        });
+    }
+    PaymentHistory.findOne({userId: userId})
+        .then(r => {
+
+        }).catch(err => {
+            console.log(err);
+    })
+}
 
 module.exports = router;
