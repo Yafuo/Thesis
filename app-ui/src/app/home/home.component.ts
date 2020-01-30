@@ -20,7 +20,7 @@ import {marker} from "./model/marker.image";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://6f9ede8f.ngrok.io';
+  domain = 'http://d8d816f2.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -155,7 +155,10 @@ export class HomeComponent implements OnInit {
 
   private _getUserInfo() {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
+      console.log(this.userInfo);
       this.userInfo = r.result;
+      this.userInfo.startTime = new Date(this.userInfo.startTime);
+      this.userInfo.endTime = new Date(this.userInfo.endTime);
       this._setLang(this.userInfo.lang);
       this.selectedParkingStation = this.userInfo.status != 'none' ? this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0].stationAddress : '';
       this.endTime = this.userInfo.status != 'none' ? new Date(this.userInfo.endTime).toLocaleString('en-US') : '';
@@ -186,6 +189,7 @@ export class HomeComponent implements OnInit {
   }
 
   private _updateDistBetweenCurrentToDestination() {
+    if (this.userInfo.stationId === 0) return;
     const endPoint = this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0];
     this._getCurrentLocation();
     let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${this.userCurrentCoor.lon},${this.userCurrentCoor.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;

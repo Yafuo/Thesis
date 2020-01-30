@@ -783,16 +783,21 @@ function logger(userName, actionName, amount, date) {
                 from: User,
                 localField: userName,
                 foreignField: email,
-                as: 'userName'
+                as: 'uName'
             }}])
             .then(r => {
                 var max = r.length !== 0 ? r[0]._id : 0;
                 const newLog = new PaymentHistory({
                     _id: max + 1,
-                    userName: userName,
+                    userName: uName,
                     actionName: actionName,
                     amount: amount,
                     time: date
+                });
+                newLog.save().then(r => {
+                    res.json({result: r});
+                }).catch(err => {
+                    console.log(err);
                 });
             }).catch(err => {
                 console.log(err);
