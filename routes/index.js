@@ -4,7 +4,7 @@ var User = require('../models/user');
 var ParkingSlot = require('../models/parkingSlot');
 var UserPressed = require('../models/userPressed');
 var Package = require('../models/package');
-var PaymentHistory = require('../models/paymentHistory');
+var PaymentLog = require('../models/paymentLog');
 var {isLoggedIn} = require('../custom_lib/authenticate');
 var {hash, compare} = require('../custom_lib/bcrypt');
 var {verify, sign} = require('../custom_lib/jwt');
@@ -779,7 +779,7 @@ router.post('/login', (req, res, next) => {
 });
 function logger(userName, actionName, amount, date) {
     if (!isExtend) {
-        PaymentHistory.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}, {$lookup: {
+        PaymentLog.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}, {$lookup: {
                 from: User,
                 localField: userName,
                 foreignField: email,
@@ -787,7 +787,7 @@ function logger(userName, actionName, amount, date) {
             }}])
             .then(r => {
                 var max = r.length !== 0 ? r[0]._id : 0;
-                const newLog = new PaymentHistory({
+                const newLog = new PaymentLog({
                     _id: max + 1,
                     userName: uName,
                     actionName: actionName,
@@ -803,7 +803,7 @@ function logger(userName, actionName, amount, date) {
                 console.log(err);
         });
     }
-    PaymentHistory.findOne({userId: userId})
+    PaymentLog.findOne({userId: userId})
         .then(r => {
 
         }).catch(err => {

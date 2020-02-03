@@ -60,6 +60,7 @@ export class HomeComponent implements OnInit {
   isTimeValid = true;
   isUserNearStation = false;
   isTimeCome = false;
+  notiStatus = 'hide';
   //Maps API
   userCurrentCoor = {lat: 0, lon: 0};
   startCoorList = [];
@@ -73,10 +74,10 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
+    this._showPopup();
+    this._getCurrentLocation();
     this._getAllPackage();
     this._getAllStation();
-    this._getUserInfo();
-    this._updateDistBetweenCurrentToDestination();
     this.leaveHomeTime = new Date(Date.now());
     this.leaveHomeTime.setMinutes(this.leaveHomeTime.getMinutes()+1);
     this.districtList = this.districtList.map(d => this._getTranslation(d));
@@ -95,6 +96,7 @@ export class HomeComponent implements OnInit {
   private _getAllStation() {
     this.http.get<any>('/api/get-all-station').subscribe(r => {
       this.stationListInfo = r;
+      this._getUserInfo();
       this.filterparkingStationList = this.parkingStationControl.valueChanges.pipe(
         startWith(''),
         map(value => this._filter(value, 3))
@@ -135,13 +137,14 @@ export class HomeComponent implements OnInit {
 
   private _suggestUserLocation(event) {
     if (this.suggestionList.filter(sug => event.indexOf(sug) > -1).length === 0) return;
+    event = event.replace(/ /g, "%20");
     let u= `https://nominatim.openstreetmap.org/search?q=${event}&format=json&polygon=1&addressdetails=1`;
     this.http.get<any>(u).subscribe(r => {
       console.log(r);
       this.userLocation = [];
       this.startCoorList = [];
       r.forEach(lo => {
-        if (lo.display_name.indexOf('Ho Chi Minh City') > -1) {
+        if (lo.display_name.indexOf('Ho Chi Minh City') > -1 || lo.display_name.indexOf('Thành phố Hồ Chí Minh') > -1) {
           this.startCoorList.push({lat: lo.lat, lon: lo.lon});
           this.userLocation.push(lo.display_name);
         }
@@ -155,8 +158,8 @@ export class HomeComponent implements OnInit {
 
   private _getUserInfo() {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
-      console.log(this.userInfo);
       this.userInfo = r.result;
+      console.log(this.userInfo);
       this.userInfo.startTime = new Date(this.userInfo.startTime);
       this.userInfo.endTime = new Date(this.userInfo.endTime);
       this._setLang(this.userInfo.lang);
@@ -191,7 +194,6 @@ export class HomeComponent implements OnInit {
   private _updateDistBetweenCurrentToDestination() {
     if (this.userInfo.stationId === 0) return;
     const endPoint = this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0];
-    this._getCurrentLocation();
     let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${this.userCurrentCoor.lon},${this.userCurrentCoor.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
     this.http.get<any>(u).subscribe(r => {
       this.isUserNearStation = r.routes[0].distance < 2400;
@@ -204,6 +206,7 @@ export class HomeComponent implements OnInit {
     navigator.geolocation.getCurrentPosition(pos => {
       this.userCurrentCoor.lat = pos.coords.latitude;
       this.userCurrentCoor.lon = pos.coords.longitude;
+      this._updateDistBetweenCurrentToDestination();
     });
   }
 
@@ -384,6 +387,13 @@ export class HomeComponent implements OnInit {
       console.log('CANCEL');
       console.log(r);
     });
+  }
+
+  private _showPopup() {
+    setTimeout(() => {
+      this.notiStatus = 'show';
+    }, 2000);
+    this.notiStatus = 'hide';
   }
 
   onSelect(p) {

@@ -29,7 +29,7 @@
           </span>
 
         </div>
-        <div class="wrap-maps">
+        <div hidden class="wrap-maps">
           <div>
           <aol-map [height]="'300px'" [width]="'100%'">
             <aol-view [zoom]="18">
@@ -246,6 +246,7 @@
         </div>
         <fa-icon class="position-fixed" style="bottom: 0;right: 0;" (click)="sidenav.open()" [icon]="faBars" size="2x"
                  [styles]="{'color': 'black'}"></fa-icon>
+        <div class="wrap-notification row"></div>
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
