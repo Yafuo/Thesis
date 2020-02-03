@@ -56,6 +56,8 @@
   "ALREADY_SIGNUP": "Oops. You have already signed up",
   "CAN_BE_EXTENDED": "Can be extended",
   "CANNOT_BE_EXTENDED": "Cannot be extended",
+  "BOOKING_SUCCESSFUL": "Booking successfully!",
+  "BOOKING_FAILED": "Booking failed!",
   "DISTRICT": {
     "Tan Phu": "Tan Phu",
     "Tan Binh": "Tan Binh",

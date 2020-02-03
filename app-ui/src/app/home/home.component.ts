@@ -1,5 +1,5 @@
 import {Component, OnInit, Renderer2, ViewEncapsulation} from '@angular/core';
-import {faCheckCircle, faTimesCircle,faUserPlus, faLanguage, faChevronLeft, faBars, faPowerOff, faSyncAlt} from "@fortawesome/free-solid-svg-icons";
+import {faCheckCircle, faTimesCircle,faUserPlus, faLanguage, faChevronLeft, faBars, faPowerOff, faSyncAlt, faTimes} from "@fortawesome/free-solid-svg-icons";
 import {TranslateService} from "@ngx-translate/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
@@ -29,6 +29,7 @@ export class HomeComponent implements OnInit {
   faUserPlus = faUserPlus;
   faLanguage = faLanguage;
   faSyncAlt = faSyncAlt;
+  faTimes = faTimes;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
   stationListInfo = [];
   userLocation = [];
@@ -92,7 +93,6 @@ export class HomeComponent implements OnInit {
       this.packageList = r;
     });
   }
-
   private _getAllStation() {
     this.http.get<any>('/api/get-all-station').subscribe(r => {
       this.stationListInfo = r;
@@ -103,7 +103,6 @@ export class HomeComponent implements OnInit {
       );
     });
   }
-
   private _calArriveTime() {
     if ((!this.userLocationControl.value && !this.isCurrentLocationChecked) || !this.parkingStationControl.value) return;
     const index = this.userLocation.indexOf(this.userLocationControl.value);
@@ -123,7 +122,6 @@ export class HomeComponent implements OnInit {
       }
     });
   }
-
   private _filter(value: string, opt: number): string[] {
     const filterValue = value.toLowerCase();
     if (opt === 1) {
@@ -134,7 +132,6 @@ export class HomeComponent implements OnInit {
       return this.stationListInfo.filter(d => d.stationAddress.toLowerCase().indexOf(filterValue) > -1);
     }
   }
-
   private _suggestUserLocation(event) {
     if (this.suggestionList.filter(sug => event.indexOf(sug) > -1).length === 0) return;
     event = event.replace(/ /g, "%20");
@@ -155,7 +152,6 @@ export class HomeComponent implements OnInit {
       );
     });
   }
-
   private _getUserInfo() {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
       this.userInfo = r.result;
@@ -167,13 +163,13 @@ export class HomeComponent implements OnInit {
       this.endTime = this.userInfo.status != 'none' ? new Date(this.userInfo.endTime).toLocaleString('en-US') : '';
     });
   }
-
   private _alwaysListenToChange() {
     this.socket = io.connect('http://localhost:3000');
     this.socket.on('news', (news: any) => {
       console.log(news);
       this.qrUrl = '';
       this.newsObj = news;
+      this._showPopup();
       if (this.newsObj.action!=='EXTENDING') this.selectedPackage = {name: '', cost: '', value: 0};
       if (this.userInfo.status.indexOf('staked') > -1) this._getUserInfo();
     });
@@ -190,7 +186,6 @@ export class HomeComponent implements OnInit {
       this._refund(hash);
     });
   }
-
   private _updateDistBetweenCurrentToDestination() {
     if (this.userInfo.stationId === 0) return;
     const endPoint = this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0];
@@ -201,7 +196,6 @@ export class HomeComponent implements OnInit {
       this.isTimeCome = this.userInfo.startTime.getHours() - currentTime.getHours() === 0 && this.userInfo.startTime.getMinutes() - currentTime.getMinutes() <= 0;
     });
   }
-
   private _getCurrentLocation() {
     navigator.geolocation.getCurrentPosition(pos => {
       this.userCurrentCoor.lat = pos.coords.latitude;
@@ -209,7 +203,6 @@ export class HomeComponent implements OnInit {
       this._updateDistBetweenCurrentToDestination();
     });
   }
-
   private _getCar() {
     const params = {
       stationId: this.userInfo.stationId,
@@ -226,7 +219,6 @@ export class HomeComponent implements OnInit {
       console.log(r);
     });
   }
-
   private _park() {
     let date = Date.now().toString(10);
     const params = {
@@ -259,7 +251,6 @@ export class HomeComponent implements OnInit {
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
     });
   }
-
   private _checkExtend() {
     this.extend = false;
     const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
@@ -311,7 +302,6 @@ export class HomeComponent implements OnInit {
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
     });
   }
-
   private _refund(hash: string) {
     let date = Date.now().toString(10);
     const d = {
@@ -325,7 +315,6 @@ export class HomeComponent implements OnInit {
       console.log(r);
     });
   }
-
   private filter() {
     this.toggleFilter();
     this.isTimeValid = this.leaveHomeTime > new Date(Date.now());
@@ -345,7 +334,6 @@ export class HomeComponent implements OnInit {
       this.isAvailable = r.result.indexOf('SLOT_NOT_AVAILABLE') < 0;
     });
   }
-
   private _book() {
     let date = Date.now().toString(10);
     const startTime = new Date(this.arriveTime).toLocaleString('en-US');
@@ -376,7 +364,6 @@ export class HomeComponent implements OnInit {
       this.qrUrl = prefix + r.qrCodeUrl.slice(42);
     });
   }
-
   private _cancel() {
     const params = {
       stationId: this.userInfo.stationId,
@@ -388,22 +375,21 @@ export class HomeComponent implements OnInit {
       console.log(r);
     });
   }
-
   private _showPopup() {
     setTimeout(() => {
-      this.notiStatus = 'show';
+      this.notiStatus = 'hide';
     }, 2000);
+    this.notiStatus = 'show';
+  }
+  private _closePopup() {
     this.notiStatus = 'hide';
   }
-
   onSelect(p) {
     this.selectedPackage = p;
   }
-
   toggleExtend() {
     this.extend = !this.extend;
   }
-
   private _getTranslation(value: string): string {
     let wordTranslated = 'not_ready';
     this.translate.get(`DISTRICT.${value}`).subscribe(word => {
@@ -411,20 +397,16 @@ export class HomeComponent implements OnInit {
     });
     return wordTranslated;
   }
-
   toggleFilter() {
     this.isFilterClicked = !this.isFilterClicked;
   }
-
   display(stt: string) {
     // this.render.setStyle(document.body.getElementsByClassName('indicator'), 'transform', 'rotate(180deg)');
     this.state = this.state === 'down' ? 'up' : 'down';
   }
-
   private _setLang(lang: string) {
     this.translate.setDefaultLang(lang);
   }
-
   navTo(i: number) {
     if (i + 1 === this.list.length) return;
     this.cookieService.delete('token', '/', 'localhost');

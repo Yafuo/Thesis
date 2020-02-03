@@ -56,6 +56,8 @@
   "ALREADY_SIGNUP": "Ồ. Bạn đã đăng ký rồi",
   "CAN_BE_EXTENDED": "Có thể gia hạn",
   "CANNOT_BE_EXTENDED": "Không thể gia hạn",
+  "BOOKING_SUCCESSFUL": "Đặt chỗ thành công!",
+  "BOOKING_FAILED": "Đặt chỗ thất bại!",
   "DISTRICT": {
     "Tan Phu": "Tân Phú",
     "Tan Binh": "Tân Bình",

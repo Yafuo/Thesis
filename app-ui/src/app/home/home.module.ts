@@ -3,7 +3,7 @@ import {HomeComponent} from "./home.component";
 import {HomeRoutingModule} from "./home-routing.module";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 import {RouterModule} from "@angular/router";
-import {BsDropdownModule} from "ngx-bootstrap";
+import {AlertModule, BsDropdownModule} from "ngx-bootstrap";
 import {CommonModule} from "@angular/common";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {TranslateModule} from "@ngx-translate/core";
@@ -40,7 +40,8 @@ import {AngularOpenlayersModule} from "ngx-openlayers";
     ReactiveFormsModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
-    AngularOpenlayersModule
+    AngularOpenlayersModule,
+    AlertModule.forRoot()
   ],
   providers: []
 })
