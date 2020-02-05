@@ -125,7 +125,7 @@ router.get('/get-user-pressed', (req, res, next) => {
 router.post('/save-user-pressed', (req, res, next) => {
     if (req.body.errorCode !== '0') return;
     const extraData = req.body.extraData.split('-');
-    logger(extraData[2], 'paid', `0 hour`, req.body.responseTime);
+    if (['P', 'G'].indexOf(extraData[3]) < 0) { logger(extraData[2], 'pay', `0 hour`, req.body.responseTime); }
     UserPressed.findOne({_id: Number(extraData[0])}).then(r => {
         if (!r) {
             var pressedList = [];
@@ -778,37 +778,24 @@ router.post('/login', (req, res, next) => {
     });
 });
 function logger(userName, actionName, amount, date) {
-    if (!isExtend) {
-        PaymentLog.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}, {$lookup: {
-                from: User,
-                localField: userName,
-                foreignField: email,
-                as: 'uName'
-            }}])
-            .then(r => {
-                var max = r.length !== 0 ? r[0]._id : 0;
-                const newLog = new PaymentLog({
-                    _id: max + 1,
-                    userName: uName,
-                    actionName: actionName,
-                    amount: amount,
-                    time: date
-                });
-                newLog.save().then(r => {
-                    res.json({result: r});
-                }).catch(err => {
-                    console.log(err);
-                });
+    PaymentLog.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}])
+        .then(r => {
+            var max = r.length !== 0 ? r[0]._id : 0;
+            const newLog = new PaymentLog({
+                _id: max + 1,
+                userName: userName,
+                actionName: actionName,
+                amount: amount,
+                time: date
+            });
+            newLog.save().then(r => {
+                res.json({result: r});
             }).catch(err => {
                 console.log(err);
-        });
-    }
-    PaymentLog.findOne({userId: userId})
-        .then(r => {
-
+            });
         }).catch(err => {
             console.log(err);
-    })
+    });
 }
 
 module.exports = router;

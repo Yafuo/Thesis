@@ -20,7 +20,7 @@ import {marker} from "./model/marker.image";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://d8d816f2.ngrok.io';
+  domain = 'http://8eb1f8c2.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -62,6 +62,7 @@ export class HomeComponent implements OnInit {
   isUserNearStation = false;
   isTimeCome = false;
   notiStatus = 'hide';
+  timer: any;
   //Maps API
   userCurrentCoor = {lat: 0, lon: 0};
   startCoorList = [];
@@ -75,7 +76,6 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
-    this._showPopup();
     this._getCurrentLocation();
     this._getAllPackage();
     this._getAllStation();
@@ -215,8 +215,12 @@ export class HomeComponent implements OnInit {
       errorCode: errorCode,
       extraData: extraData
     }
-    this.http.post('/api/save-user-pressed', lastParams).subscribe(r => {
-      console.log(r);
+    this.http.post<any>('/api/save-user-pressed', lastParams).subscribe(r => {
+      if (r.result.indexOf('GET_CAR') >= 0) {
+        this.newsObj.action = 'GET_CAR';
+        this.newsObj.billCode = r.result.indexOf('GET_CAR_FAILED') >= 0 ? '-1' : '0';
+        this._showPopup();
+      }
     });
   }
   private _park() {
@@ -376,12 +380,13 @@ export class HomeComponent implements OnInit {
     });
   }
   private _showPopup() {
-    setTimeout(() => {
-      this.notiStatus = 'hide';
-    }, 2000);
     this.notiStatus = 'show';
+    this.timer = setTimeout(() => {
+      this.notiStatus = 'hide';
+    }, 4000);
   }
   private _closePopup() {
+    clearTimeout(this.timer);
     this.notiStatus = 'hide';
   }
   onSelect(p) {
@@ -412,5 +417,7 @@ export class HomeComponent implements OnInit {
     this.cookieService.delete('token', '/', 'localhost');
     this.router.navigate(['/']);
   }
-
+  ngOnDestroy() {
+    if (this.timer) clearTimeout(this.timer);
+  }
 }

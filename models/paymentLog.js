@@ -7,3 +7,4 @@ const paymentLogSchema = new Schema({
     amount: String,
     time: Date
 });
+module.exports = mongoose.model('PaymentLog', paymentLogSchema);
