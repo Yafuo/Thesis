@@ -1,5 +1,5 @@
 import {Component, OnInit, Renderer2, ViewEncapsulation} from '@angular/core';
-import {faCheckCircle, faTimesCircle,faUserPlus, faLanguage, faChevronLeft, faBars, faPowerOff, faSyncAlt, faTimes} from "@fortawesome/free-solid-svg-icons";
+import {faCheckCircle, faTimesCircle,faUserPlus, faLanguage, faChevronLeft, faBars, faPowerOff, faSyncAlt, faTimes, faMoneyBillAlt} from "@fortawesome/free-solid-svg-icons";
 import {TranslateService} from "@ngx-translate/core";
 import {FormControl} from "@angular/forms";
 import {Observable} from "rxjs";
@@ -20,7 +20,7 @@ import {marker} from "./model/marker.image";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://88dc3a53.ngrok.io';
+  domain = 'http://3d07ff2f.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -30,6 +30,7 @@ export class HomeComponent implements OnInit {
   faLanguage = faLanguage;
   faSyncAlt = faSyncAlt;
   faTimes = faTimes;
+  faMoneyBillAlt = faMoneyBillAlt;
   districtList = ['Tan Phu', 'Tan Binh', 'Phu Nhuan', 'Binh Thanh'];
   stationListInfo = [];
   userLocation = [];
@@ -57,16 +58,19 @@ export class HomeComponent implements OnInit {
   endTime = '';
   selectedLang = '';
   langList = [{name: 'Vietnamese', code: 'vn'}, {name: 'English', code: 'en'}, {name: 'Español', code: 'es'}, {name: 'Chinese', code: 'ch'}];
-  list = [{opt: 'Log out', details: [], icon: this.faPowerOff}, {opt: 'Language', details: this.langList, icon: this.faLanguage}];
+  list = [{opt: 'LOG_OUT', details: [], icon: this.faPowerOff}, {opt: 'LANGUAGE', details: this.langList, icon: this.faLanguage}, {opt: 'PAYMENT_LOG', details: [], icon: this.faMoneyBillAlt}];
   isTimeValid = true;
   isUserNearStation = false;
   isTimeCome = false;
-  notiStatus = 'hide';
+  notiStatus = 'show';
   timer: any;
+  isFine = false;
+  isConflict = false;
   //Maps API
   userCurrentCoor = {lat: 0, lon: 0};
   startCoorList = [];
   distance = 0;
+  dur = 0;
   suggestionList = ['phuong', 'cong vien', 'bệnh viện', 'tower', 'park'];
   markerImg = marker;
 
@@ -78,12 +82,8 @@ export class HomeComponent implements OnInit {
     this._getAllPackage();
     this._getAllStation();
     this.leaveHomeTime = new Date(Date.now());
-    this.leaveHomeTime.setMinutes(this.leaveHomeTime.getMinutes()+1);
+    this.leaveHomeTime.setMinutes(this.leaveHomeTime.getMinutes()+2);
     this.districtList = this.districtList.map(d => this._getTranslation(d));
-    this.filterAllSearchList = this.allSearch.valueChanges.pipe(
-      startWith(''),
-      map(value => this._filter(value, 1))
-    );
   }
 
   private _getAllPackage() {
@@ -99,6 +99,10 @@ export class HomeComponent implements OnInit {
         startWith(''),
         map(value => this._filter(value, 3))
       );
+      this.filterAllSearchList = this.allSearch.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filter(value, 3))
+      );
     });
   }
   private _calArriveTime() {
@@ -109,13 +113,13 @@ export class HomeComponent implements OnInit {
     let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
     this.http.get<any>(u).subscribe(r => {
       this.distance = r.routes[0].distance;
-      const dur = r.routes[0].duration;
+      this.dur = r.routes[0].duration;
       let temp = new Date(this.leaveHomeTime);
-      if (dur >= 3600) {
-        temp.setHours(temp.getHours()+dur/3600, temp.getMinutes()+(dur%3600)/60);
+      if (this.dur >= 3600) {
+        temp.setHours(temp.getHours()+this.dur/3600, temp.getMinutes()+(this.dur%3600)/60);
         this.arriveTime = temp;
       } else {
-        temp.setMinutes(temp.getMinutes()+dur/60, temp.getSeconds()+dur%60);
+        temp.setMinutes(temp.getMinutes()+this.dur/60, temp.getSeconds()+this.dur%60);
         this.arriveTime = temp;
       }
     });
@@ -129,6 +133,12 @@ export class HomeComponent implements OnInit {
     } else {
       return this.stationListInfo.filter(d => d.stationAddress.toLowerCase().indexOf(filterValue) > -1);
     }
+  }
+  private _searchStation() {
+    const selectedStationId = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.allSearch.value) > -1)[0]._id;
+    this.http.post<any>('/api/get-all-slot', {stationId: selectedStationId}).subscribe(r => {
+      console.log(r.result);
+    });
   }
   private _suggestUserLocation(event) {
     if (this.suggestionList.filter(sug => event.indexOf(sug) > -1).length === 0) return;
@@ -176,6 +186,8 @@ export class HomeComponent implements OnInit {
       } else {
         this.isShowResult = false;
         this.qrUrl = '';
+        this._showPopup();
+        this.isConflict = true;
       }
     });
     this.socket.on(`${this.userInfo.email.slice(0, this.userInfo.email.indexOf('@'))}-news`, (news: any) => {
@@ -183,6 +195,7 @@ export class HomeComponent implements OnInit {
       this.qrUrl = '';
       this.isShowResult = false;
       this.newsObj = news;
+      if (this.newsObj.action === 'FINE') this._getCar();
       if (this.newsObj.action!=='CHECK_EXTENDING') this._showPopup();
       if (this.newsObj.action!=='CHECK_EXTENDING') this.selectedPackage = {name: '', cost: '', value: 0};
       if (this.userInfo.status.indexOf('staked') >= 0) this._getUserInfo();
@@ -217,7 +230,41 @@ export class HomeComponent implements OnInit {
       this._updateDistBetweenCurrentToDestination();
     });
   }
+  private _checkLate() {
+    var now = new Date(Date.now());
+    var duration = parseInt(((now.getTime() - this.userInfo.endTime.getTime())/(1000*60)).toString(10)); // don vi phut
+    if (duration > 5) {
+      let date = Date.now().toString(10);
+      const d = {
+        partnerCode: 'MOMO',
+        accessKey: 'F8BBA842ECF85',
+        requestId: 'FINE' + date,
+        amount: (duration*100).toString(10),
+        orderId: 'FINE' + date,
+        orderInfo: `Late ${duration} minutes`,
+        returnUrl: this.domain,
+        notifyUrl: this.domain + '/api/punish',
+        requestType: 'captureMoMoWallet',
+        extraData: `${this.userInfo.email}-${duration}`,
+        signature: ''
+      };
+      var data = `partnerCode=${d.partnerCode}&accessKey=${d.accessKey}&requestId=${d.requestId}&amount=${d.amount}&orderId=${d.orderId}&orderInfo=${d.orderInfo}&returnUrl=${d.returnUrl}&notifyUrl=${d.notifyUrl}&extraData=${d.extraData}`;
+      var secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
+      var signature = CryptoJS.HmacSHA256(data, secretKey);
+      d.signature = signature.toString();
+      this.http.post<any>('https://test-payment.momo.vn/gw_payment/transactionProcessor', JSON.stringify(d)).subscribe(r => {
+        console.log('PUNISH');
+        console.log(r);
+        this.isFine = true;
+        const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
+        this.qrUrl = r.qrCodeUrl ? prefix + r.qrCodeUrl.slice(42) : '';
+      });
+    } else {
+      this._getCar();
+    }
+  }
   private _getCar() {
+    this.isFine = false;
     const params = {
       stationId: this.userInfo.stationId,
       slotId: this.userInfo.slotId,
@@ -229,11 +276,6 @@ export class HomeComponent implements OnInit {
       errorCode: errorCode,
       extraData: extraData
     };
-    var now = new Date(Date.now());
-    var duration = (now.getTime() - this.userInfo.endTime.getTime())/(1000*60); // don vi phut
-    if (duration > 5) {
-
-    }
     this.http.post<any>('/api/save-user-pressed', lastParams).subscribe(r => {
       if (r.result.indexOf('GET_CAR') >= 0) {
         this.newsObj.action = 'GET_CAR';
@@ -253,9 +295,9 @@ export class HomeComponent implements OnInit {
     const d = {
       partnerCode: 'MOMO',
       accessKey: 'F8BBA842ECF85',
-      requestId: 'UIT' + date,
+      requestId: 'PARK' + date,
       amount: selectedP[0].cost,
-      orderId: 'UIT' + date,
+      orderId: 'PARK' + date,
       orderInfo: selectedP[0].name,
       returnUrl: this.domain,
       notifyUrl: this.domain +'/api/save-user-pressed',
@@ -271,7 +313,7 @@ export class HomeComponent implements OnInit {
       console.log('PARK');
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
-      this.qrUrl = prefix + r.qrCodeUrl.slice(42);
+      this.qrUrl = r.qrCodeUrl ? prefix + r.qrCodeUrl.slice(42) : '';
     });
   }
   private _checkExtend() {
@@ -322,7 +364,7 @@ export class HomeComponent implements OnInit {
       console.log('EXTEND');
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
-      this.qrUrl = prefix + r.qrCodeUrl.slice(42);
+      this.qrUrl = r.qrCodeUrl ? prefix + r.qrCodeUrl.slice(42) : '';
     });
   }
   private _refund(hash: string) {
@@ -385,7 +427,7 @@ export class HomeComponent implements OnInit {
       console.log('BOOK');
       console.log(r);
       const prefix = 'https://test-payment.momo.vn/gw_payment/qrcode/image/receipt?key=';
-      this.qrUrl = prefix + r.qrCodeUrl.slice(42);
+      this.qrUrl = r.qrCodeUrl ? prefix + r.qrCodeUrl.slice(42) : '';
     });
   }
   private _cancel() {
@@ -426,6 +468,7 @@ export class HomeComponent implements OnInit {
   }
   toggleFilter() {
     this.isFilterClicked = !this.isFilterClicked;
+    this.isConflict = false; // Reset lai bien nay khi user mo filter lai. Vi luc nay user chac chan se chon gio khac, neu chon gio cu, thi HT se bao ve la het cho.
   }
   display(stt: string) {
     // this.render.setStyle(document.body.getElementsByClassName('indicator'), 'transform', 'rotate(180deg)');
@@ -434,10 +477,17 @@ export class HomeComponent implements OnInit {
   private _setLang(lang: string) {
     this.translate.setDefaultLang(lang);
   }
-  navTo(i: number) {
-    if (i + 1 === this.list.length) return;
-    this.cookieService.delete('token', '/', 'localhost');
-    this.router.navigate(['/']);
+  navTo(opt: string) {
+    if (opt.indexOf('LANGUAGE') >= 0) return;
+    if (opt.indexOf('LOG_OUT') >= 0) {
+      this.cookieService.delete('token', '/', 'localhost');
+      this.router.navigate(['/']);
+    }
+    if (opt.indexOf('PAYMENT_LOG') >= 0) {
+      this.http.post<any>('/api/get-log', {userName: this.userInfo.email}).subscribe(r => {
+        console.log(r.result);
+      });
+    }
   }
   ngOnDestroy() {
     if (this.timer) clearTimeout(this.timer);

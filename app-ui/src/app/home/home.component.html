@@ -2,7 +2,7 @@
   <mat-sidenav-container class="example-container" (backdropClick)="sidenav.close()">
     <mat-sidenav class="bg-dark" #sidenav>
       <fa-icon (click)="sidenav.close()" [icon]="faChevronLeft" size="2x" [styles]="{'color': 'white'}"></fa-icon>
-      <div class="sidenav-opt text-white" (click)="navTo(i)" *ngFor="let l of list; index as i">
+      <div class="sidenav-opt text-white" (click)="navTo(l.opt)" *ngFor="let l of list; index as i">
         <fa-icon [icon]="l.icon"></fa-icon>
         {{l.opt| translate}}
         <div (click)="_setLang(d.code)" class="sidenav-opt-details text-white" *ngFor="let d of l.details">
@@ -16,10 +16,10 @@
           <mat-form-field class="pl-4 col-8">
             <input matInput type="text" placeholder="{{'Search' | translate}} ..." [formControl]="allSearch"
                    [matAutocomplete]="all">
-            <mat-icon class="search-fn" matSuffix>search</mat-icon>
+            <mat-icon class="search-fn" matSuffix (click)="_searchStation()">search</mat-icon>
             <mat-autocomplete autoActiveFirstOption #all="matAutocomplete">
-              <mat-option *ngFor="let d of filterAllSearchList | async" [value]="d">
-                {{d | translate}}
+              <mat-option *ngFor="let d of filterAllSearchList | async" [value]="d.stationAddress">
+                {{d.stationAddress | translate}}
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
@@ -103,7 +103,8 @@
           <div class="col-1"></div>
         </div>
         <div *ngIf="qrUrl" class="wrap-qr-code overflow-auto text-center">
-          <h3>QR CODE</h3>
+          <h3 *ngIf="!isFine">{{'QR_CODE' | translate}}</h3>
+          <h3 *ngIf="isFine">{{'QR_CODE_FINE' | translate}}</h3>
           <img src="{{qrUrl}}" style="width: 50vw">
         </div>
         <div class="wrap-filter hide-this-{{!isFilterClicked}}">
@@ -141,7 +142,8 @@
             </div>
           </div>
           <div class="abc row mr-0 ml-0">
-            <div class="badge badge-success">{{'Distance: ' | translate}}{{distance + ' m'}}</div>
+            <div class="badge badge-success">{{'Distance:' | translate}}{{' '+ distance + ' m'}}</div>
+<!--            <div class="col-6 badge badge-success">{{'Spend:' | translate}}{{' '}}{{(dur/60) > 60 ? (dur/3600) : (dur/60) | number:'1.1-2'}}{{(dur/60) > 60 ? ' hour'}}</div>-->
           </div>
           <mat-accordion [hideToggle]="true">
             <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
@@ -193,58 +195,61 @@
         <div *ngIf="userInfo.status.indexOf('paid') > -1" class="wrap-get-car-btn row">
           <div class="col-8 text-center" style="padding: 0 40px">
             <button [disabled]="!isUserNearStation" class="btn btn-sm btn-primary w-100"
-                    (click)="_getCar()">{{'Get car' | translate}}</button>
+                    (click)="_checkLate()">{{'GET_CAR' | translate}}</button>
           </div>
           <div class="col-2 text-center">
             <button class="btn btn-sm btn-primary w-100" (click)="_updateDistBetweenCurrentToDestination()">
               <fa-icon [icon]="faSyncAlt" [styles]="{'color': 'white'}"></fa-icon>
             </button>
           </div>
+          <div class="col-12 text-center" style="padding: 0 40px">
+            <button class="btn btn-sm btn-warning w-100" (click)="toggleExtend()">{{'Extend' | translate}}</button>
+          </div>
         </div>
-        <div *ngIf="userInfo.status.indexOf('staked') > -1" class="wrap-feature-btn row">
-          <div class="col-8 col-md-3 text-center" style="padding: 0 40px">
+        <div *ngIf="userInfo.status.indexOf('staked') >= 0" class="wrap-feature-btn row">
+          <div class="col-8 text-center" style="padding: 0 40px">
             <button [disabled]="!isUserNearStation && !isTimeCome" (click)="_park()"
                     class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
           </div>
-          <div class="col-2 col-md-1 text-center">
+          <div class="col-2 text-center">
             <button class="btn btn-sm btn-primary w-100" (click)="_updateDistBetweenCurrentToDestination()">
               <fa-icon [icon]="faSyncAlt" [styles]="{'color': 'white'}"></fa-icon>
             </button>
           </div>
-          <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
+          <div class="col-12 text-center" style="padding: 0 40px">
             <button class="btn btn-sm btn-warning w-100" (click)="toggleExtend()">{{'Extend' | translate}}</button>
           </div>
-          <div class="col-12 col-md-4 text-center" style="padding: 0 40px">
+          <div class="col-12 text-center" style="padding: 0 40px">
             <button class="btn btn-sm btn-danger w-100" (click)="_cancel()">{{'Cancel' | translate}}</button>
           </div>
-          <div class="col-12 package-choice hide-this-{{!extend}}" style="padding: 0 40px">
-            <mat-accordion [hideToggle]="true">
-              <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
-                <mat-expansion-panel-header style="font-size: 14px" class="row">
-                  <mat-panel-title class="col-2 col-sm-2 p-0">
-                    <button [disabled]="!selectedPackage.name" class="btn btn-sm btn-primary btn-extend"
-                            (click)="_checkExtend()">{{'Done' | translate}}</button>
-                  </mat-panel-title>
-                  <mat-panel-description class="col-8 col-sm-8 p-0 mr-0">
-                    <span>{{'Please select extending package' | translate}}</span>
-                  </mat-panel-description>
-                  <mat-panel-description class="col-2 col-sm-2 p-0">
-                    <div class=" indicator{{'-'+ state}}">
-                      <mat-icon>keyboard_arrow_down</mat-icon>
-                    </div>
-                  </mat-panel-description>
-                </mat-expansion-panel-header>
-                <div class="row">
-                  <ul class="col-12 col-sm-6 pr-0 list-group">
-                    <li class="list-group-item" (click)="onSelect(p)"
-                        *ngFor="let p of packageList">{{p.name | translate}}</li>
-                  </ul>
-                </div>
-              </mat-expansion-panel>
-            </mat-accordion>
-          </div>
         </div>
-        <fa-icon class="position-fixed" style="bottom: 0;right: 0;" (click)="sidenav.open()" [icon]="faBars" size="2x"
+        <div class="row package-choice hide-this-{{!extend}}" style="padding: 0 40px">
+          <mat-accordion [hideToggle]="true">
+            <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
+              <mat-expansion-panel-header style="font-size: 14px" class="row">
+                <mat-panel-title class="col-2 col-sm-2 p-0">
+                  <button [disabled]="!selectedPackage.name" class="btn btn-sm btn-primary btn-extend"
+                          (click)="_checkExtend()">{{'Done' | translate}}</button>
+                </mat-panel-title>
+                <mat-panel-description class="col-8 col-sm-8 p-0 mr-0">
+                  <span>{{'Please select extending package' | translate}}</span>
+                </mat-panel-description>
+                <mat-panel-description class="col-2 col-sm-2 p-0">
+                  <div class=" indicator{{'-'+ state}}">
+                    <mat-icon>keyboard_arrow_down</mat-icon>
+                  </div>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <div class="row">
+                <ul class="col-12 col-sm-6 pr-0 list-group">
+                  <li class="list-group-item" (click)="onSelect(p)"
+                      *ngFor="let p of packageList">{{p.name | translate}}</li>
+                </ul>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+        <fa-icon class="position-fixed bars-icon" (click)="sidenav.open()" [icon]="faBars" size="2x"
                  [styles]="{'color': 'black'}"></fa-icon>
       </div>
       <div *ngIf="newsObj.action !== ''" class="wrap-notification noti-{{notiStatus}}">
@@ -257,8 +262,11 @@
           <fa-icon style="float: right" class="ml-4" [icon]="faTimes" (click)="_closePopup()"></fa-icon>
         </div>
       </div>
-      <div class="wrap-noti-filter">
-
+      <div *ngIf="isConflict" class="wrap-notification-filter noti-{{notiStatus}}">
+        <div class="alert alert-danger mb-0 p-0 pl-1 pr-1">
+          <span>{{'CONFLICT_BOOK' | translate}}</span>
+          <fa-icon style="float: right" class="ml-4" [icon]="faTimes" (click)="_closePopup()"></fa-icon>
+        </div>
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>

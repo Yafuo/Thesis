@@ -805,7 +805,34 @@ router.post('/test', (req, res, next) => {
 router.post('/punish', (req, res, next) => {
     if (req.body.errorCode !== '0') return;
     let info = req.body.extraData.split('-');
-    logger(info[0], 'punish', `${info[1]} minutes`, req.body.responseTime);
+    logger(info[0], 'punish', `Late ${info[1]} minutes`, req.body.responseTime);
+    res.json({result: 'FINE_SUCCESSFUL'});
+    req.app.io.emit(`${info[0].slice(0,info[0].indexOf('@'))}-news`, {billMsg: '', billCode: '0', action: 'FINE'});
+});
+router.post('/get-all-slot', (req, res, next) => {
+    const stationId = Number(req.body.stationId);
+    ParkingSlot.aggregate([{$match: {_id: stationId}}]).then(r => {
+        if (!r) {
+            res.json({result: 'NO_STATION_FOUND'});
+            return;
+        }
+        res.json({result: r[0]});
+        return;
+    }).catch(err => {
+        console.log(err);
+    })
+});
+router.post('/get-log', (req, res, next) => {
+    const userName = req.body.userName;
+    PaymentLog.aggregate([{$match: {userName: userName}}]).then(r => {
+        if (!r) {
+            res.json({result: 'USER_NO_DATA'});
+            return;
+        }
+        res.json({result: r});
+    }).catch(err => {
+        console.log(err);
+    })
 });
 function logger(userName, actionName, amount, date) {
     PaymentLog.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}])
@@ -819,7 +846,10 @@ function logger(userName, actionName, amount, date) {
                 time: date
             });
             newLog.save().then(r => {
-                res.json({result: r});
+                if (!r) {
+                    console.log('SAVE_LOG_SUCCESSFUL');
+                }
+                console.log('SAVE_LOG_FAILED');
             }).catch(err => {
                 console.log(err);
             });

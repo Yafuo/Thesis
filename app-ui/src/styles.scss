@@ -15,7 +15,7 @@ mat-sidenav-container {
   max-width: 320px;
 }
 mat-sidenav {
-  width: 114px;
+  width: 157px;
 }
 .footer {
   background-color: black;
@@ -30,9 +30,17 @@ a {
   }
 }
 .wrap-content {
+  .bars-icon {
+    right: 0;
+    bottom: 0;
+  }
   @media only screen and (min-device-width: 1367px) {
     .mobile-wrapper {
       padding: 0 30vw;
+    }
+    .bars-icon {
+      right: 30vw;
+      bottom: 0;
     }
   }
   .wrap-symbol {
