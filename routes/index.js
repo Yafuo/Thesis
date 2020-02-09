@@ -14,13 +14,20 @@ var encHex = require('crypto-js/enc-hex');
 var encUtf8 = require('crypto-js/enc-utf8');
 var {io, app} = require('../app');
 var nodeMailer = require('nodemailer');
-const pubKey = 'MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAohdHc1KjKfu+T6ABqGAhieGO9omjvspfz4FWY0dd55plrBdFQYuYu' +
-    'bc43hOkNtRXFUsrxYKB3FiBot0T12bde8XMveQe/HzUkdc46d7SR7CQyANEQvKt2SRDTyeyQAW9XVnWw5CsK1zFCRCBNH3RsEcMfzWPneK1tKaA+4' +
-    'ilL7br/0Xr0ajtpdS9ySWJyVLZh3sj3hHpz9NE9SrtRA74N2UcHEaVKg6e34G/hZKaQW87yto6H/0jXx0oKZQ7/qQyKqxiNpdlWKHQgRTFr3R8L1S' +
-    '52ipJvjJ9oenVwxafRmQ4fp4UcOuleXblcSmK/d3Bj+2cBx4O9Z6B4Ic4dY2TSYgof/g0HvSIBTqOGug84cGxTsnoxVKv0RdLAp9lE29ZF+kRGDao' +
-    'exLeJog/SLWOpgQWs2ZL/StCfdiLDaP52fMui8ePp92LeZlW0oAQtMeOu6YR5Yz0zsHP96eFHTABooXs3sbf0+5ADQwTAjtC5x9B+CuzFYF0Kg5BS' +
-    'WGQPEpV9Ta83eZ5cTXE4KuYRVupCi4UhFaq74u36wQucLMJhrg0GagFrfVwBYmDhMA2BNmp4+ORiSYdklSNFH2cXMJOSJhUL5KT8DmpzpZp5kmvPa' +
-    'XI5q0hHY2+lP5VtMWlp7vOOC4onbg1RuPv2YeBSXjcbp7ZEbbchv+8rKjRnTNtFncCAwEAAQ==';
+const pubKey = '-----BEGIN PUBLIC KEY-----'+
+    'MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAiBIo9EMTElPppPejirL1'+
+    'cdgCuZUoBzGZF3SyrTp+xdMnIXSOiFYG+zHmI1lFzoEbEd1JwXAUV52gn/oAkUo+'+
+    '2qwuqZAPdkm714tiyjvxXE/0WYLl8X1K8uCSK47u26CnOLgNB6iW1m9jog00i9XV'+
+    '/AmKI1U8OioLFSp1BwMf3O+jA9uuRfj1Lv5Q0Q7RMtk4tgV924+D8mY/y3otBp5b'+
+    '+zX0NrWkRqwgPly6NeXN5LwqRj0LwAEVVwGbpl6V2cztYv94ZHjGzNziFJli2D0V'+
+    'pb/HRPP6ibXvllgbL4UXU4Izqhxml8gwd74jXaNaEgNJGhjjeUXR1sAm7Mpjqqgy'+
+    'xpx6B2+GpjWtEwvbJuO8DsmQNsm+bJZhw46uf9AuY5VSYy2cAF1XMXSAPNLqYEE8'+
+    'oVUki4IWYOEWSNXcQwikJC25rAErbyst/0i8RN4yqgiO/xVA1J1vdmRQTvGMXPGb'+
+    'DFpVca4MkHHLrkdC3Z3CzgMkbIqnpaDYoIHZywraHWA7Zh5fDt/t7FzX69nbGg8i'+
+    '4QFLzIm/2RDPePJTY2R24w1iVO5RhEbKEaTBMuibp4UJH+nEQ1p6CNdHvGvWz8S0'+
+    'izfiZmYIddaPatQTxYRq4rSsE/+2L+9RE9HMqAhQVvehRGWWiGSY1U4lWVeTGq2s'+
+    'uCNcMZdgDMbbIaSEJJRQTksCAwEAAQ=='+
+    '-----END PUBLIC KEY-----';
 
 /* GET home page. */
 router.get('/home', isLoggedIn, function (req, res, next) {
@@ -176,7 +183,7 @@ router.post('/save-user-pressed', (req, res, next) => {
                         extraData[3].indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_FAILED'}) : res.json({result: 'CONTROL_GET_CAR_FAILED'});
                         return;
                     }
-                    req.app.io.emit('user-status', {status: userStatus});
+                    req.app.io.emit(`${extraData[2].slice(0,extraData[2].indexOf('@'))}-user-status`, {status: userStatus});
                     userStatus.indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_SUCCESSFUL'}) : res.json({result: 'CONTROL_GET_CAR_SUCCESSFUL'});
                 }).catch(err => {
                     console.log(err);
@@ -230,7 +237,7 @@ router.post('/save-user-pressed', (req, res, next) => {
                     extraData[3].indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_FAILED'}) : res.json({result: 'CONTROL_GET_CAR_FAILED'});
                     return;
                 }
-                req.app.io.emit('user-status', {status: userStatus});
+                req.app.io.emit(`${extraData[2].slice(0,extraData[2].indexOf('@'))}-user-status`, {status: userStatus});
                 userStatus.indexOf('P') > -1 ? res.json({result: 'CONTROL_PARK_SUCCESSFUL'}) : res.json({result: 'CONTROL_GET_CAR_SUCCESSFUL'});
             }).catch(err => {
                 console.log(err);
@@ -266,7 +273,7 @@ router.post('/canceling', (req, res, next) => {
                     res.json({result: 'CANCELLING_FAILED'});
                     return;
                 }
-                req.app.io.emit('user-status', {status: 'none'});
+                req.app.io.emit(`${userName.slice(0,userName.indexOf('@'))}-user-status`, {status: 'none'});
                 res.json({result: 'CANCELLING_SUCCESSFUL'});
             }).catch(err => {
                 console.log(err);
@@ -342,11 +349,11 @@ router.post('/check-slot-extendable', (req, res, next) => {
             }
         }
         if (flag) {
-            req.app.io.emit('news', {billMsg: '', billCode: '', action: 'EXTENDING'});
+            req.app.io.emit(`${userName.slice(0,userName.indexOf('@'))}-news`, {billMsg: '', billCode: '', action: 'CHECK_EXTENDING'});
             res.json({result: 'CAN_EXTEND'});
             return;
         }
-        req.app.io.emit('news', {billMsg: '', billCode: '', action: 'EXTENDING'});
+        req.app.io.emit(`${userName.slice(0,userName.indexOf('@'))}-news`, {billMsg: '', billCode: '', action: 'CHECK_EXTENDING'});
         res.json({result: 'CANNOT_EXTEND'});
     });
 });
@@ -361,6 +368,8 @@ router.post('/extending', (req, res, next) => {
             ParkingSlot.aggregate([{$match: {_id: Number(extraData[0])}}, {$project: {_id: 0, capacity: '$capacity'}}]).then(capacity => {
                 var info = r[0].slots;
                 var futures = [];
+                var startT = '';
+                var newEndT = '';
                 if (info.length === capacity[0].capacity) {
                     futures = info[slotId-1].future;
                 } else {
@@ -369,8 +378,10 @@ router.post('/extending', (req, res, next) => {
                 for (var i = 0; i< futures.length; i++) {
                     const email = futures[i].userName;
                     if (extraData[2] === email) {
-                        var newEndTime = new Date(extraData[4]);
-                        newEndTime.setHours(new Date(extraData[4]).getHours() + Number(extraData[3]));
+                        var newEndTime = new Date(futures[i].endTime.toLocaleString('en-US'));
+                        newEndTime.setHours(newEndTime.getHours() + Number(extraData[3]));
+                        newEndT = newEndTime.toLocaleString('en-US');
+                        startT = futures[i].startTime.toLocaleString('en-US');
                         if (futures.length === 1) {
                             futures[i].endTime = newEndTime;
                             futures[i].package += Number(extraData[3]);
@@ -398,11 +409,12 @@ router.post('/extending', (req, res, next) => {
                         .then(r => {
                             if (r) {
                                 res.json({result: 'EXTEND_SUCCESSFUL'});
-                                req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
+                                req.app.io.emit(`${extraData[2].slice(0,extraData[2].indexOf('@'))}-news`, {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
+                                req.app.io.emit('news', {userId: extraData[2], startTime: startT, endTime: newEndT, stationId: Number(extraData[0])});
                                 return;
                             }
                             res.json({result: 'EXTEND_FAILED'});
-                            req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
+                            req.app.io.emit(`${extraData[2].slice(0,extraData[2].indexOf('@'))}-news`, {billMsg: req.body.message, billCode: req.body.errorCode, action: 'EXTENDING'});
                         }).catch(err => {
                         console.log(err);
                     });
@@ -498,8 +510,9 @@ router.post('/booking', (req, res, next) => {
                                 User.updateOne({email: info[2]}, {$set: {status: 'staked'+info[4]}}).then(data => {
                                     if (data) {
                                         res.json({result: 'BOOKING_SUCCESSFUL'});
-                                        req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
-                                        req.app.io.emit('user-status', {status: 'staked'+info[4]});
+                                        req.app.io.emit(`${info[2].slice(0,info[2].indexOf('@'))}-news`, {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                        req.app.io.emit(`${info[2].slice(0,info[2].indexOf('@'))}-user-status`, {status: 'staked'+info[4]});
+                                        req.app.io.emit('news', {userId: info[2], startTime: new Date(info[3]), endTime: new Date(info[5]), stationId: Number(info[0])});
                                         return;
                                     }
                                     res.json({result: 'UPDATE_USER_STAKE_STATE_FAILED'});
@@ -508,7 +521,7 @@ router.post('/booking', (req, res, next) => {
                                 });
                                 return;
                             }
-                            req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                            req.app.io.emit(`${info[2].slice(0,info[2].indexOf('@'))}-news`, {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
                             res.json({result: 'BOOKING_FAILED'});
                         }).catch(err => {
                             console.log(err);
@@ -546,12 +559,13 @@ router.post('/booking', (req, res, next) => {
                         if (data) {
                             User.updateOne({email: info[2]}, {$set: {status: 'staked'+info[4]}}).then(data => {
                                 if (data) {
-                                    req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
-                                    req.app.io.emit('user-status', {status: 'staked'+info[4]});
+                                    req.app.io.emit(`${info[2].slice(0,info[2].indexOf('@'))}-news`, {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                    req.app.io.emit(`${info[2].slice(0,info[2].indexOf('@'))}-user-status`, {status: 'staked'+info[4]});
+                                    req.app.io.emit('news', {userId: info[2], startTime: new Date(info[3]), endTime: new Date(info[5]), stationId: Number(info[0])});
                                     res.json({result: 'BOOKING_SUCCESSFUL'});
                                     return;
                                 }
-                                req.app.io.emit('news', {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
+                                req.app.io.emit(`${info[2].slice(0,info[2].indexOf('@'))}-news`, {billMsg: req.body.message, billCode: req.body.errorCode, action: 'BOOKING'});
                                 res.json({result: 'BOOKING_FAILED'});
                             }).catch(err => {
                                 console.log(err);
@@ -776,6 +790,22 @@ router.post('/login', (req, res, next) => {
     }).catch(err => {
         res.status(503).json({result: 'QUERY_DATABASE_FAILED'});
     });
+});
+router.post('/test', (req, res, next) => {
+    const jsonString = {
+        partnerCode: 'MOMO',
+        partnerRefId: req.body.orderId,
+        momoTransId: req.body.transId,
+        amount: req.body.amount
+    }
+    const key = new NodeRSA(pubKey, {encryptionScheme: 'pkcs1'});
+    const encrypted = key.encrypt(JSON.stringify(jsonString), 'base64');
+    req.app.io.emit('refund', {hash: encrypted});
+});
+router.post('/punish', (req, res, next) => {
+    if (req.body.errorCode !== '0') return;
+    let info = req.body.extraData.split('-');
+    logger(info[0], 'punish', `${info[1]} minutes`, req.body.responseTime);
 });
 function logger(userName, actionName, amount, date) {
     PaymentLog.aggregate([{$project: {_id: 1}}, {$sort: {_id: -1}}, {$limit: 1}])

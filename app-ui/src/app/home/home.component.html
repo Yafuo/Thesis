@@ -77,26 +77,26 @@
                  class="badge badge-danger">{{'You\'ve already booked'}}</p>
               <p>
                 <fa-icon [icon]="faCheckCircle" [styles]="{'color': 'green'}"></fa-icon>
-                <span *ngIf="newsObj.action !== 'EXTENDING'"
+                <span *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) < 0"
                       class="{{'text-success'}}">{{'Available' | translate}}</span>
-                <span *ngIf="newsObj.action === 'EXTENDING'"
+                <span *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) >= 0"
                       class="{{'text-success'}}">{{'CAN_BE_EXTENDED' | translate}}</span>
-                <button *ngIf="newsObj.action !== 'EXTENDING'"
+                <button *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) < 0"
                         [disabled]="qrUrl || userInfo.status != 'none' || !isTimeValid" (click)="_book()"
                         class="btn btn-sm btn-success float-right">{{'Booking' | translate}}</button>
-                <button *ngIf="newsObj.action === 'EXTENDING'" [disabled]="qrUrl" (click)="_extend()"
+                <button *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) >= 0" [disabled]="qrUrl" (click)="_extend()"
                         class="btn btn-sm btn-success float-right">{{'Extend' | translate}}</button>
               </p>
             </fieldset>
             <fieldset *ngIf="!isAvailable" class="p-2" style="border: 1px #dc3545 solid">
               <legend class="w-auto"><span class="badge badge-danger">{{'Result' | translate}}</span></legend>
               <fa-icon [icon]="faTimesCircle" [styles]="{'color': 'red'}"></fa-icon>
-              <span *ngIf="newsObj.action !== 'EXTENDING'" class="text-danger">{{'Not Available' | translate}}</span>
-              <span *ngIf="newsObj.action === 'EXTENDING'"
+              <span *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) < 0" class="text-danger">{{'Not Available' | translate}}</span>
+              <span *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) >= 0"
                     class="text-danger">{{'CANNOT_BE_EXTENDED' | translate}}</span>
-              <button *ngIf="newsObj.action !== 'EXTENDING'" disabled
+              <button *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) < 0" disabled
                       class="btn btn-sm btn-primary float-right">{{'Booking' | translate}}</button>
-              <button *ngIf="newsObj.action === 'EXTENDING'" disabled
+              <button *ngIf="['CHECK_EXTENDING'].indexOf(newsObj.action) >= 0" disabled
                       class="btn btn-sm btn-primary float-right">{{'Extend' | translate}}</button>
             </fieldset>
           </div>
@@ -256,6 +256,9 @@
           <span>{{newsObj.action + '_FAILED' | translate}}</span>
           <fa-icon style="float: right" class="ml-4" [icon]="faTimes" (click)="_closePopup()"></fa-icon>
         </div>
+      </div>
+      <div class="wrap-noti-filter">
+
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>

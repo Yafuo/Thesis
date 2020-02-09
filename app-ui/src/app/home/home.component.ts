@@ -20,7 +20,7 @@ import {marker} from "./model/marker.image";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://8eb1f8c2.ngrok.io';
+  domain = 'http://88dc3a53.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -69,10 +69,8 @@ export class HomeComponent implements OnInit {
   distance = 0;
   suggestionList = ['phuong', 'cong vien', 'bệnh viện', 'tower', 'park'];
   markerImg = marker;
-  geoReverseService = 'https://nominatim.openstreetmap.org/reverse?key=iTzWSiYpGxDvhATNtSrqx5gDcnMOkntL&format=json&addressdetails=1&lat={lat}&lon={lon}';
 
   constructor(private translate: TranslateService, private router: Router, private render: Renderer2, private http: HttpClient, private cookieService: CookieService, private eventBus: EventBusService) {
-    this._alwaysListenToChange();
   }
 
   ngOnInit() {
@@ -137,7 +135,6 @@ export class HomeComponent implements OnInit {
     event = event.replace(/ /g, "%20");
     let u= `https://nominatim.openstreetmap.org/search?q=${event}&format=json&polygon=1&addressdetails=1`;
     this.http.get<any>(u).subscribe(r => {
-      console.log(r);
       this.userLocation = [];
       this.startCoorList = [];
       r.forEach(lo => {
@@ -155,6 +152,7 @@ export class HomeComponent implements OnInit {
   private _getUserInfo() {
     this.http.get<any>('/api/get-user-info').subscribe(r => {
       this.userInfo = r.result;
+      this._alwaysListenToChange();
       console.log(this.userInfo);
       this.userInfo.startTime = new Date(this.userInfo.startTime);
       this.userInfo.endTime = new Date(this.userInfo.endTime);
@@ -166,19 +164,35 @@ export class HomeComponent implements OnInit {
   private _alwaysListenToChange() {
     this.socket = io.connect('http://localhost:3000');
     this.socket.on('news', (news: any) => {
+      if (this.userInfo.status !== 'none' || news.userId === this.userInfo.email || news.stationId !== this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id) {
+        console.log('wrong condition');
+        return;
+      }
+      console.log(news);
+      let endTime = new Date(this.arriveTime);
+      endTime.setHours(endTime.getHours() + this.selectedPackage.value);
+      if (this.arriveTime > new Date(news.endTime) || endTime < new Date(news.startTime)) {
+        this.isShowResult = true;
+      } else {
+        this.isShowResult = false;
+        this.qrUrl = '';
+      }
+    });
+    this.socket.on(`${this.userInfo.email.slice(0, this.userInfo.email.indexOf('@'))}-news`, (news: any) => {
       console.log(news);
       this.qrUrl = '';
+      this.isShowResult = false;
       this.newsObj = news;
-      this._showPopup();
-      if (this.newsObj.action!=='EXTENDING') this.selectedPackage = {name: '', cost: '', value: 0};
-      if (this.userInfo.status.indexOf('staked') > -1) this._getUserInfo();
+      if (this.newsObj.action!=='CHECK_EXTENDING') this._showPopup();
+      if (this.newsObj.action!=='CHECK_EXTENDING') this.selectedPackage = {name: '', cost: '', value: 0};
+      if (this.userInfo.status.indexOf('staked') >= 0) this._getUserInfo();
     });
-    this.socket.on('user-status', (json: any) => {
+    this.socket.on(`${this.userInfo.email.slice(0, this.userInfo.email.indexOf('@'))}-user-status`, (json: any) => {
       console.log(json);
       this.userInfo.status = json.status;
       this.selectedPackage = {name: '', cost: '', value: 0};
       this.qrUrl = '';
-      if (this.userInfo.status.indexOf('staked') > -1) this._getUserInfo();
+      if (this.userInfo.status.indexOf('staked') >= 0) this._getUserInfo();
     });
     this.socket.on('refund', (json: any) => {
       console.log(json);
@@ -214,6 +228,11 @@ export class HomeComponent implements OnInit {
     const lastParams = {
       errorCode: errorCode,
       extraData: extraData
+    };
+    var now = new Date(Date.now());
+    var duration = (now.getTime() - this.userInfo.endTime.getTime())/(1000*60); // don vi phut
+    if (duration > 5) {
+
     }
     this.http.post<any>('/api/save-user-pressed', lastParams).subscribe(r => {
       if (r.result.indexOf('GET_CAR') >= 0) {
@@ -341,6 +360,7 @@ export class HomeComponent implements OnInit {
   private _book() {
     let date = Date.now().toString(10);
     const startTime = new Date(this.arriveTime).toLocaleString('en-US');
+    // readyParkTime la endTime. Do da co bien endTime roi :(( KO HIEU LAM
     let readyParkTime = new Date(this.arriveTime);
     readyParkTime.setHours(this.arriveTime.getHours() + this.selectedPackage.value);
     const index = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.selectedParkingStation) > -1)[0]._id;
@@ -374,9 +394,11 @@ export class HomeComponent implements OnInit {
       slotId: this.userInfo.slotId,
       userName: this.userInfo.email
     }
-    this.http.post('/api/canceling', params).subscribe(r => {
+    this.http.post<any>('/api/canceling', params).subscribe(r => {
       console.log('CANCEL');
-      console.log(r);
+      this.newsObj.action = 'CANCEL';
+      this.newsObj.billCode = r.result.indexOf('FAILED') >= 0 ? '-1' : '0';
+      this._showPopup();
     });
   }
   private _showPopup() {
