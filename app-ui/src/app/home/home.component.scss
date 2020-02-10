@@ -6,7 +6,11 @@
 .package-option {
   margin: 5px;
 }
-.list-group-item:hover {
+.list-group-item-false:hover {
+  background-color: #eeeeee;
+  border-left: 6px solid purple;
+}
+.list-group-item-true {
   background-color: #eeeeee;
   border-left: 6px solid purple;
 }
@@ -76,4 +80,7 @@
 .wrap-notification-filter {
   position: fixed;
   left: 5px;
+}
+.package-choice {
+  padding: 0 40px;
 }

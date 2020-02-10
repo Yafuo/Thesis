@@ -20,7 +20,7 @@ import {marker} from "./model/marker.image";
 })
 export class HomeComponent implements OnInit {
 
-  domain = 'http://3d07ff2f.ngrok.io';
+  domain = 'http://b1139fea.ngrok.io';
   faBars = faBars;
   faPowerOff = faPowerOff;
   faChevronLeft =faChevronLeft;
@@ -110,7 +110,7 @@ export class HomeComponent implements OnInit {
     const index = this.userLocation.indexOf(this.userLocationControl.value);
     const startPoint = this.isCurrentLocationChecked ? this.userCurrentCoor : this.startCoorList[index];
     const endPoint = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.parkingStationControl.value) > -1)[0];
-    let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
+    let u = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
     this.http.get<any>(u).subscribe(r => {
       this.distance = r.routes[0].distance;
       this.dur = r.routes[0].duration;
@@ -216,9 +216,9 @@ export class HomeComponent implements OnInit {
   private _updateDistBetweenCurrentToDestination() {
     if (this.userInfo.stationId === 0) return;
     const endPoint = this.stationListInfo.filter(s => s._id === this.userInfo.stationId)[0];
-    let u = `https://routing.openstreetmap.de/routed-bike/route/v1/driving/${this.userCurrentCoor.lon},${this.userCurrentCoor.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
+    let u = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${this.userCurrentCoor.lon},${this.userCurrentCoor.lat};${endPoint.lon},${endPoint.lat}?overview=false&geometries=polyline&steps=true`;
     this.http.get<any>(u).subscribe(r => {
-      this.isUserNearStation = r.routes[0].distance < 2400;
+      this.isUserNearStation = r.routes[0].distance < 5;
       const currentTime = new Date(Date.now());
       this.isTimeCome = this.userInfo.startTime.getHours() - currentTime.getHours() === 0 && this.userInfo.startTime.getMinutes() - currentTime.getMinutes() <= 0;
     });

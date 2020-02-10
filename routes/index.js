@@ -57,7 +57,7 @@ router.post('/signup', function (req, res, next) {
             password: passwordHash,
             lang: req.body.lang
         });
-        User.findOne({email: user.email}, {password: user.password}).then(u => {
+        User.findOne({email: user.email}).then(u => {
             if (!u) {
                 user.save().then(result => {
                     res.json({result: 'SIGNUP_SUCCESS'});

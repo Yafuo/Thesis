@@ -34,12 +34,12 @@ a {
     right: 0;
     bottom: 0;
   }
-  @media only screen and (min-device-width: 1367px) {
+  @media only screen and (min-device-width: 1024px) {
     .mobile-wrapper {
-      padding: 0 30vw;
+      padding: 0 20vw;
     }
     .bars-icon {
-      right: 30vw;
+      right: 25vw;
       bottom: 0;
     }
   }

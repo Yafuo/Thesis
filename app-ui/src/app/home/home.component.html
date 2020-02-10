@@ -162,7 +162,7 @@
               </mat-expansion-panel-header>
               <div class="row">
                 <ul class="col-12 col-sm-6 pr-0 list-group">
-                  <li class="list-group-item" (click)="onSelect(p)"
+                  <li class="list-group-item list-group-item-{{selectedPackage.value === p.value}}" (click)="onSelect(p)"
                       *ngFor="let p of packageList">{{p.name | translate}}</li>
                 </ul>
               </div>
@@ -208,7 +208,7 @@
         </div>
         <div *ngIf="userInfo.status.indexOf('staked') >= 0" class="wrap-feature-btn row">
           <div class="col-8 text-center" style="padding: 0 40px">
-            <button [disabled]="!isUserNearStation && !isTimeCome" (click)="_park()"
+            <button [disabled]="!isUserNearStation || !isTimeCome" (click)="_park()"
                     class="btn btn-sm btn-primary w-100">{{'Park' | translate}}</button>
           </div>
           <div class="col-2 text-center">
@@ -223,7 +223,7 @@
             <button class="btn btn-sm btn-danger w-100" (click)="_cancel()">{{'Cancel' | translate}}</button>
           </div>
         </div>
-        <div class="row package-choice hide-this-{{!extend}}" style="padding: 0 40px">
+        <div class="row package-choice hide-this-{{!extend}}">
           <mat-accordion [hideToggle]="true">
             <mat-expansion-panel class="abc m-2" (opened)="display('up')" (closed)="display('down')">
               <mat-expansion-panel-header style="font-size: 14px" class="row">
@@ -242,7 +242,7 @@
               </mat-expansion-panel-header>
               <div class="row">
                 <ul class="col-12 col-sm-6 pr-0 list-group">
-                  <li class="list-group-item" (click)="onSelect(p)"
+                  <li class="list-group-item list-group-item-{{selectedPackage.value === p.value}}" (click)="onSelect(p)"
                       *ngFor="let p of packageList">{{p.name | translate}}</li>
                 </ul>
               </div>
