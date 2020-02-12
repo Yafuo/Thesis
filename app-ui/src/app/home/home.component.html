@@ -257,8 +257,12 @@
           <span>{{newsObj.action + '_SUCCESSFUL' | translate}}</span>
           <fa-icon style="float: right" class="ml-4" [icon]="faTimes" (click)="_closePopup()"></fa-icon>
         </div>
-        <div *ngIf="newsObj.billCode !== '0'" class="alert alert-danger mb-0 p-0 pl-1 pr-1">
+        <div *ngIf="['0', '1006'].indexOf(newsObj.billCode) < 0" class="alert alert-danger mb-0 p-0 pl-1 pr-1">
           <span>{{newsObj.action + '_FAILED' | translate}}</span>
+          <fa-icon style="float: right" class="ml-4" [icon]="faTimes" (click)="_closePopup()"></fa-icon>
+        </div>
+        <div *ngIf="['1006'].indexOf(newsObj.billCode) >= 0" class="alert alert-danger mb-0 p-0 pl-1 pr-1">
+          <span>{{newsObj.action | translate}}</span>
           <fa-icon style="float: right" class="ml-4" [icon]="faTimes" (click)="_closePopup()"></fa-icon>
         </div>
       </div>
@@ -266,6 +270,15 @@
         <div class="alert alert-danger mb-0 p-0 pl-1 pr-1">
           <span>{{'CONFLICT_BOOK' | translate}}</span>
           <fa-icon style="float: right" class="ml-4" [icon]="faTimes" (click)="_closePopup()"></fa-icon>
+        </div>
+      </div>
+      <div class="wrap-station-result">
+        <div class="station-name">{{station.stationAddress}}</div>
+        <div class="station-address">{{station.addresss}}</div>
+        <div *ngFor="let slot of station.slots" class="station-slot">
+          <div *ngFor="let f of slot.future" class="station-future">
+            .station
+          </div>
         </div>
       </div>
     </mat-sidenav-content>

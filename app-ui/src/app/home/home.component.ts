@@ -66,6 +66,7 @@ export class HomeComponent implements OnInit {
   timer: any;
   isFine = false;
   isConflict = false;
+  station: any;
   //Maps API
   userCurrentCoor = {lat: 0, lon: 0};
   startCoorList = [];
@@ -138,6 +139,13 @@ export class HomeComponent implements OnInit {
     const selectedStationId = this.stationListInfo.filter(s => s.stationAddress.indexOf(this.allSearch.value) > -1)[0]._id;
     this.http.post<any>('/api/get-all-slot', {stationId: selectedStationId}).subscribe(r => {
       console.log(r.result);
+      this.station = r.result;
+      this._getAddress(this.station.lat, this.station.lon);
+    });
+  }
+  private _getAddress(lat: any, lon: any) {
+    this.http.get<any>(`https://nominatim.openstreetmap.org/reverse?key=iTzWSiYpGxDvhATNtSrqx5gDcnMOkntL&format=json&addressdetails=1&lat=${lat}&lon=${lon}`).subscribe(r => {
+      this.station.address = r.display_name;
     });
   }
   private _suggestUserLocation(event) {
@@ -375,9 +383,12 @@ export class HomeComponent implements OnInit {
       hash: hash,
       version: 2
     };
-    this.http.post('https://test-payment.momo.vn/pay/refund', JSON.stringify(d)).subscribe(r => {
+    this.http.post<any>('https://test-payment.momo.vn/pay/refund', JSON.stringify(d)).subscribe(r => {
       console.log('REFUND');
       console.log(r);
+      this.newsObj.billCode = r.status.toString();
+      this.newsObj.action = 'SYSTEM_FAILURE';
+      this._showPopup();
     });
   }
   private filter() {
