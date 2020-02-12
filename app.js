@@ -15,7 +15,6 @@ var http = require('http');
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 
-app.io = io;
 
 server.listen(3000);
 
