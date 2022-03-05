@@ -6,7 +6,8 @@ const parkingSlotSchema = mongoose.Schema({
     status: {
         isBooked: Boolean,
         bookedTime: Date
-    }
+    },
+    testLZGCmd: String
 });
 
 
